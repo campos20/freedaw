@@ -1,7 +1,7 @@
 // The TypeScript editing helpers must agree with crates/tune; both are checked against the
 // original prototype's goldens (crates/tune/tests/fixtures).
 import { readFileSync } from "node:fs";
-import type { Note, TuneAnalysis } from "@tessera/schema";
+import type { Note, TuneAnalysis } from "@freedaw/schema";
 import { describe, expect, it } from "vitest";
 import { correctPitch, enforceOrder, noteName, quantizeTiming, splitNote, target } from "./model";
 

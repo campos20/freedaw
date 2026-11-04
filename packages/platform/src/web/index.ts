@@ -7,7 +7,7 @@ import {
   type SourceInfo,
   type TakeProgress,
   type TuneAnalysis,
-} from "@tessera/schema";
+} from "@freedaw/schema";
 import type {
   AudioPlatform,
   AudioSettings,
@@ -209,13 +209,13 @@ export class WebPlatform implements AudioPlatform {
     // `start()` reports the problem, and on hosts using coi-sw.js the page reloads isolated.
     if (!globalThis.crossOriginIsolated) {
       if (!this.warnedNotIsolated)
-        console.warn("tessera: not cross-origin isolated; engine commands are dropped");
+        console.warn("freedaw: not cross-origin isolated; engine commands are dropped");
       this.warnedNotIsolated = true;
       return;
     }
     const op = encodeCommand(command, this.commandArgs);
     if (!this.commandRing().push(op, this.commandArgs)) {
-      console.warn("tessera: command ring full, dropped", command);
+      console.warn("freedaw: command ring full, dropped", command);
     }
     // The worklet can't allocate in process(): device state is created from its message
     // handler. The engine accepts it before or after the command.
@@ -238,7 +238,7 @@ export class WebPlatform implements AudioPlatform {
       this.beforeEngine.push([message, transfer]);
       return;
     }
-    this.request(message, transfer).catch((e: unknown) => console.warn("tessera:", e));
+    this.request(message, transfer).catch((e: unknown) => console.warn("freedaw:", e));
   }
 
   onEvent(listener: EngineEventListener): () => void {
@@ -335,7 +335,7 @@ export class WebPlatform implements AudioPlatform {
   private commandRing(): MessageRing {
     if (!this.commands) {
       if (!globalThis.crossOriginIsolated) {
-        throw new Error("Tessera needs cross-origin isolation (COOP/COEP headers) for SharedArrayBuffer.");
+        throw new Error("FreeDAW needs cross-origin isolation (COOP/COEP headers) for SharedArrayBuffer.");
       }
       this.commands = MessageRing.create(RING_CAPACITY);
     }

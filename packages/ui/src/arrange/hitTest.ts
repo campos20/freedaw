@@ -1,4 +1,4 @@
-import type { Clip, Track } from "@tessera/schema";
+import type { Clip, Track } from "@freedaw/schema";
 import { frameToX, type View } from "./timeScale";
 
 export type ClipPart = "body" | "trim-start" | "trim-end" | "fade-in" | "fade-out";

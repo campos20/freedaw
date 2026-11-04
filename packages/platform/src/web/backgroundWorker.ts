@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 /**
  * Web Worker running worker.wasm: decodes imported audio, migrates project files, packs or
- * unpacks `.tessera` archives, writes recorded takes and measures latency — off both the main
+ * unpacks `.freedaw` archives, writes recorded takes and measures latency — off both the main
  * thread and the audio thread.
  */
 import { CaptureRecorder } from "./captureRecorder";

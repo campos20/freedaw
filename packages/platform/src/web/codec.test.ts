@@ -1,4 +1,4 @@
-import { type Command, CommandLayout, EventLayout, MAX_ARGS } from "@tessera/schema";
+import { type Command, CommandLayout, EventLayout, MAX_ARGS } from "@freedaw/schema";
 import { describe, expect, it } from "vitest";
 import { decodeEvent, encodeCommand } from "./codec";
 

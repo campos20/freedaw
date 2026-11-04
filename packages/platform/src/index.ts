@@ -8,7 +8,7 @@ import type {
   SourceInfo,
   TakeProgress,
   TuneAnalysis,
-} from "@tessera/schema";
+} from "@freedaw/schema";
 
 export type Edition = "web" | "desktop";
 
@@ -57,7 +57,7 @@ export interface RecordedTake {
   channels: number;
 }
 
-export type { TakeProgress } from "@tessera/schema";
+export type { TakeProgress } from "@freedaw/schema";
 
 export interface LatencyMeasurement {
   frames: number;
@@ -87,9 +87,9 @@ export interface ProjectStorage {
   /** Deletes a file inside a project; missing files are ignored. */
   deleteFile(projectId: string, path: string): Promise<void>;
   delete(projectId: string): Promise<void>;
-  /** Writes the project and its audio as a `.tessera` file. Resolves false if cancelled. */
+  /** Writes the project and its audio as a `.freedaw` file. Resolves false if cancelled. */
   exportArchive(projectId: string): Promise<boolean>;
-  /** Imports a `.tessera` file as a new project under `newId`. */
+  /** Imports a `.freedaw` file as a new project under `newId`. */
   importArchive(file: File, newId: string): Promise<Project>;
 }
 

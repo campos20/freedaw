@@ -63,7 +63,7 @@ jobs:
           git diff --exit-code packages/schema
 
       - name: Build desktop app (debug, no bundle)
-        run: pnpm --filter @tessera/desktop tauri build --debug --no-bundle
+        run: pnpm --filter @freedaw/desktop tauri build --debug --no-bundle
 
   web:
     name: Web (lint, unit, E2E)
@@ -88,7 +88,7 @@ jobs:
       - run: pnpm build:web
 
       - name: Install Playwright Chromium
-        run: pnpm --filter @tessera/web exec playwright install --with-deps chromium
+        run: pnpm --filter @freedaw/web exec playwright install --with-deps chromium
       - run: pnpm e2e
       - name: E2E as deployed on GitHub Pages (sub-path, no COOP/COEP headers)
         run: pnpm e2e:pages

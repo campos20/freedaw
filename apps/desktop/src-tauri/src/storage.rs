@@ -1,5 +1,5 @@
 //! Project storage for the desktop edition: `<app data>/projects/<id>/project.json` plus the
-//! project's audio files. Mirrors the web edition's OPFS layout, so `.tessera` archives move
+//! project's audio files. Mirrors the web edition's OPFS layout, so `.freedaw` archives move
 //! between editions unchanged.
 
 use std::path::{Path, PathBuf};
@@ -10,6 +10,9 @@ use tauri::ipc::{InvokeBody, Request, Response};
 use tauri::{AppHandle, Manager};
 
 const PROJECT_FILE: &str = "project.json";
+/// The bundle identifier before the project was renamed from Tessera. App data folders are named
+/// after the identifier, so projects saved under it have to be moved.
+const LEGACY_IDENTIFIER: &str = "app.tessera.desktop";
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -25,6 +28,26 @@ fn projects_dir(app: &AppHandle) -> Result<PathBuf, String> {
         .app_data_dir()
         .map_err(|e| e.to_string())?
         .join("projects"))
+}
+
+/// Moves projects from the legacy app data folder on first launch. Call before anything reads
+/// or creates the projects folder.
+pub fn adopt_legacy_projects(app: &AppHandle) -> Result<(), String> {
+    let data = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let Some(parent) = data.parent() else {
+        return Ok(());
+    };
+    move_projects(&parent.join(LEGACY_IDENTIFIER), &data)
+}
+
+/// Moves `from/projects` to `to/projects`, unless the destination already exists.
+fn move_projects(from: &Path, to: &Path) -> Result<(), String> {
+    let (source, dest) = (from.join("projects"), to.join("projects"));
+    if !source.is_dir() || dest.exists() {
+        return Ok(());
+    }
+    std::fs::create_dir_all(to).map_err(|e| e.to_string())?;
+    std::fs::rename(source, dest).map_err(|e| e.to_string())
 }
 
 fn project_dir(app: &AppHandle, id: &str) -> Result<PathBuf, String> {
@@ -164,7 +187,7 @@ pub async fn project_delete(app: AppHandle, id: String) -> Result<(), String> {
     std::fs::remove_dir_all(project_dir(&app, &id)?).map_err(|e| e.to_string())
 }
 
-/// Writes the project folder as a `.tessera` archive at `dest` (chosen in a save dialog).
+/// Writes the project folder as a `.freedaw` archive at `dest` (chosen in a save dialog).
 #[tauri::command]
 pub async fn project_export(app: AppHandle, id: String, dest: String) -> Result<(), String> {
     let zip = export_in(&projects_dir(&app)?, &id)?;
@@ -197,7 +220,7 @@ fn collect(root: &Path, dir: &Path, out: &mut Vec<(String, Vec<u8>)>) -> Result<
     Ok(())
 }
 
-/// Raw body: a `.tessera` archive. Header: `x-project-id` (the new project's id).
+/// Raw body: a `.freedaw` archive. Header: `x-project-id` (the new project's id).
 #[tauri::command]
 pub async fn project_import(app: AppHandle, request: Request<'_>) -> Result<Project, String> {
     import_in(
@@ -213,7 +236,7 @@ fn import_in(root: &Path, id: &str, zip: &[u8]) -> Result<Project, String> {
     let (_, json) = entries
         .iter()
         .find(|(path, _)| path == PROJECT_FILE)
-        .ok_or("this .tessera file has no project.json")?;
+        .ok_or("this .freedaw file has no project.json")?;
     let mut project = project::load(std::str::from_utf8(json).map_err(|e| e.to_string())?)
         .map_err(|e| e.to_string())?;
     project.id = id.clone();
@@ -235,7 +258,7 @@ mod tests {
 
     fn temp_root(name: &str) -> PathBuf {
         let dir =
-            std::env::temp_dir().join(format!("tessera-storage-{name}-{}", std::process::id()));
+            std::env::temp_dir().join(format!("freedaw-storage-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         dir
@@ -248,6 +271,31 @@ mod tests {
             "loop":{{"enabled":false,"start":0,"end":0}},"tracks":[],"sources":[],"nextId":1,
             "createdAt":"2026-01-01T00:00:00Z","modifiedAt":"2026-01-02T00:00:00Z"}}"#
         )
+    }
+
+    #[test]
+    fn moves_legacy_projects_once_and_never_over_existing_ones() {
+        let root = temp_root("legacy");
+        let (old, new) = (root.join("old"), root.join("new"));
+        write_atomic(&old.join("projects/a/project.json"), b"old").unwrap();
+
+        move_projects(&old, &new).unwrap();
+        assert_eq!(
+            std::fs::read(new.join("projects/a/project.json")).unwrap(),
+            b"old"
+        );
+        assert!(!old.join("projects").exists());
+
+        write_atomic(&old.join("projects/b/project.json"), b"stale").unwrap();
+        move_projects(&old, &new).unwrap();
+        assert!(old.join("projects/b/project.json").exists());
+        assert!(!new.join("projects/b").exists());
+
+        // Nothing to move: no error, and no folder created.
+        let fresh = root.join("fresh");
+        move_projects(&root.join("missing"), &fresh).unwrap();
+        assert!(!fresh.exists());
+        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

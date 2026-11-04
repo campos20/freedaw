@@ -1,5 +1,5 @@
 {
-  "name": "tessera",
+  "name": "freedaw",
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",
@@ -10,16 +10,16 @@
   "scripts": {
     "build:wasm": "node scripts/build-wasm.mjs",
     "gen:schema": "cargo test -q -p engine-core -p engine-native -p media -p project -p tune --features engine-core/ts,engine-native/ts,media/ts,project/ts,tune/ts export",
-    "dev:web": "pnpm build:wasm && pnpm --filter @tessera/web dev",
-    "dev:desktop": "pnpm --filter @tessera/desktop tauri dev",
-    "build:web": "pnpm build:wasm && pnpm --filter @tessera/web build",
-    "build:desktop": "pnpm --filter @tessera/desktop tauri build",
+    "dev:web": "pnpm build:wasm && pnpm --filter @freedaw/web dev",
+    "dev:desktop": "pnpm --filter @freedaw/desktop tauri dev",
+    "build:web": "pnpm build:wasm && pnpm --filter @freedaw/web build",
+    "build:desktop": "pnpm --filter @freedaw/desktop tauri build",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write . && cargo fmt --all",
     "test": "pnpm build:wasm && vitest run",
-    "e2e": "pnpm build:wasm && pnpm --filter @tessera/web e2e",
-    "e2e:pages": "pnpm build:wasm && pnpm --filter @tessera/web e2e:pages"
+    "e2e": "pnpm build:wasm && pnpm --filter @freedaw/web e2e",
+    "e2e:pages": "pnpm build:wasm && pnpm --filter @freedaw/web e2e:pages"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

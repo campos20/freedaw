@@ -1,9 +1,9 @@
-import type { AudioPlatform, ProjectStorage, RecordedTake } from "@tessera/platform";
-import type { Command, Event, Project, SourceInfo } from "@tessera/schema";
+import type { AudioPlatform, ProjectStorage, RecordedTake } from "@freedaw/platform";
+import type { Command, Event, Project, SourceInfo } from "@freedaw/schema";
 import { produce } from "immer";
 import { describe, expect, it } from "vitest";
 import { addClip, addSource, addTrack, newProject } from "../model/edits";
-import { Session } from "./session";
+import { adoptLegacyKeys, Session } from "./session";
 
 /** A platform whose engine runs at `engineRate`; records every command sent. */
 function fakePlatform(engineRate: number, saved: Project, takes: RecordedTake[] | Error = []) {
@@ -86,6 +86,33 @@ function savedProject(): Project {
     addClip(p, track, source, 96_000);
   });
 }
+
+describe("adoptLegacyKeys", () => {
+  function fakeStorage(entries: Record<string, string>) {
+    const map = new Map(Object.entries(entries));
+    return {
+      map,
+      getItem: (key: string) => map.get(key) ?? null,
+      setItem: (key: string, value: string) => void map.set(key, value),
+      removeItem: (key: string) => void map.delete(key),
+    };
+  }
+
+  it("moves values to the new keys without replacing newer ones", () => {
+    const storage = fakeStorage({
+      "tessera.lastProject": "old-project",
+      "tessera.latency": '{"a":1}',
+      "freedaw.latency": '{"a":2}',
+      unrelated: "kept",
+    });
+    adoptLegacyKeys(storage);
+    expect(Object.fromEntries(storage.map)).toEqual({
+      "freedaw.lastProject": "old-project",
+      "freedaw.latency": '{"a":2}',
+      unrelated: "kept",
+    });
+  });
+});
 
 describe("Session", () => {
   it("restores clips at the engine's real rate before the first Play", async () => {

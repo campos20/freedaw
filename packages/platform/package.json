@@ -1,5 +1,5 @@
 {
-  "name": "@tessera/platform",
+  "name": "@freedaw/platform",
   "version": "0.1.0",
   "private": true,
   "license": "GPL-3.0-or-later",
@@ -16,7 +16,7 @@
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",
     "@tauri-apps/plugin-dialog": "^2.8.4",
-    "@tessera/schema": "workspace:*"
+    "@freedaw/schema": "workspace:*"
   },
   "devDependencies": {
     "vite": "^8.3.5"

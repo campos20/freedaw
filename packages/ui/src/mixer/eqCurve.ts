@@ -1,4 +1,4 @@
-import { type Device, DEVICES } from "@tessera/schema";
+import { type Device, DEVICES } from "@freedaw/schema";
 import { paramValue } from "../model/edits";
 
 /** Band filter shapes, in the order of the EQ's "type" parameter. */

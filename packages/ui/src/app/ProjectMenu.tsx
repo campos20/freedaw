@@ -57,10 +57,10 @@ export function ProjectMenu() {
             New project
           </button>
           <label role="menuitem" className="menu-file">
-            Import .tessera…
+            Import .freedaw…
             <input
               type="file"
-              accept=".tessera,application/zip"
+              accept=".freedaw,.tessera,application/zip"
               data-testid="import-archive"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -71,7 +71,7 @@ export function ProjectMenu() {
             />
           </label>
           <button role="menuitem" onClick={act(() => void session.exportArchive())}>
-            Export .tessera…
+            Export .freedaw…
           </button>
           {projects.length > 0 && <div className="menu-heading">Recent projects</div>}
           {projects.map((p) => (

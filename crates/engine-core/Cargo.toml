@@ -1,6 +1,6 @@
 [package]
 name = "engine-core"
-description = "Platform-agnostic Tessera audio engine: graph, transport, DSP. No I/O, no threads."
+description = "Platform-agnostic FreeDAW audio engine: graph, transport, DSP. No I/O, no threads."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

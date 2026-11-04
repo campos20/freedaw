@@ -257,7 +257,7 @@ pub(crate) fn percent_decode(s: &str) -> String {
 /// state and meter reading per track, and frees audio the engine has released.
 fn spawn_event_forwarder(app: AppHandle) {
     std::thread::Builder::new()
-        .name("tessera-events".into())
+        .name("freedaw-events".into())
         .spawn(move || {
             let mut batch: Vec<Event> = Vec::new();
             let mut progress: Vec<TakeProgress> = Vec::new();
@@ -307,7 +307,7 @@ fn spawn_event_forwarder(app: AppHandle) {
 }
 
 fn main() {
-    println!("Tessera audio devices:\n{}", engine_native::list_devices());
+    println!("FreeDAW audio devices:\n{}", engine_native::list_devices());
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -338,11 +338,14 @@ fn main() {
             tune::tune_close
         ])
         .setup(|app| {
+            if let Err(e) = storage::adopt_legacy_projects(app.handle()) {
+                eprintln!("could not move projects from the previous app data folder: {e}");
+            }
             spawn_event_forwarder(app.handle().clone());
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running Tessera");
+        .expect("error while running FreeDAW");
 }
 
 #[cfg(test)]

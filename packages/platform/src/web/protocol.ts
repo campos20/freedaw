@@ -1,5 +1,5 @@
 /** Name the worklet registers under and the options the main thread passes to it. */
-export const PROCESSOR_NAME = "tessera-engine";
+export const PROCESSOR_NAME = "freedaw-engine";
 
 export interface ProcessorOptions {
   module: WebAssembly.Module;

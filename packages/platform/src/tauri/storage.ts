@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
-import type { Project } from "@tessera/schema";
+import type { Project } from "@freedaw/schema";
 import type { ProjectStorage, ProjectSummary } from "../index";
 
 /** Desktop project storage, implemented by the Rust commands in apps/desktop/src-tauri/src/storage.rs. */
@@ -39,8 +39,8 @@ export class TauriStorage implements ProjectStorage {
   async exportArchive(projectId: string): Promise<boolean> {
     const project = await this.open(projectId);
     const dest = await save({
-      defaultPath: `${project.name.replace(/[\\/:*?"<>|]+/g, "_") || "project"}.tessera`,
-      filters: [{ name: "Tessera project", extensions: ["tessera"] }],
+      defaultPath: `${project.name.replace(/[\\/:*?"<>|]+/g, "_") || "project"}.freedaw`,
+      filters: [{ name: "FreeDAW project", extensions: ["freedaw"] }],
     });
     if (!dest) return false;
     await invoke("project_export", { id: projectId, dest });

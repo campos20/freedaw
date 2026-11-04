@@ -1,4 +1,4 @@
-import { MAX_ARGS } from "@tessera/schema";
+import { MAX_ARGS } from "@freedaw/schema";
 
 /**
  * Single-producer single-consumer ring of raw protocol messages (an opcode plus `MAX_ARGS`

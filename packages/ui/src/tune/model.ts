@@ -1,4 +1,4 @@
-import type { Key, Note, TuneAnalysis } from "@tessera/schema";
+import type { Key, Note, TuneAnalysis } from "@freedaw/schema";
 
 /**
  * Note editing for the Tune editor, run synchronously in the UI so edits are instant and

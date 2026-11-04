@@ -1,4 +1,4 @@
-import { MAX_ARGS } from "@tessera/schema";
+import { MAX_ARGS } from "@freedaw/schema";
 import { describe, expect, it } from "vitest";
 import { MessageRing } from "./messageRing";
 

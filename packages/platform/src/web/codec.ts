@@ -5,7 +5,7 @@ import {
   EventLayout,
   MAX_ARGS,
   type MessageLayout,
-} from "@tessera/schema";
+} from "@freedaw/schema";
 
 /**
  * Raw encoding of protocol messages, driven by the layout table generated from Rust

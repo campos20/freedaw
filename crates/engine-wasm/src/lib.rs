@@ -4,7 +4,7 @@
 //! load ES-module glue or call `fetch`. The main thread compiles the module and hands the
 //! `WebAssembly.Module` to the worklet, which instantiates it synchronously with no imports.
 //!
-//! Everything [`tessera_process`] touches is allocated in [`tessera_create`], so processing
+//! Everything [`freedaw_process`] touches is allocated in [`freedaw_create`], so processing
 //! never allocates. Audio sources are allocated when they are imported, from the worklet's
 //! message handler (between render quanta), and filled in chunks by JS.
 //!
@@ -18,28 +18,28 @@ use engine_core::{
 };
 use rtrb::Consumer;
 
-/// Largest block [`tessera_process`] renders in one call. AudioWorklet blocks are 128 frames.
+/// Largest block [`freedaw_process`] renders in one call. AudioWorklet blocks are 128 frames.
 pub const MAX_FRAMES: usize = 4096;
 
 pub struct Handle {
     engine: Engine,
     controller: EngineController,
     capture: Consumer<CaptureChunk>,
-    /// Planar input written by JS before [`tessera_process`].
+    /// Planar input written by JS before [`freedaw_process`].
     in_l: Vec<f32>,
     in_r: Vec<f32>,
     input: Vec<f32>,
-    /// `[track, start, frames, channels]` of the chunk returned by [`tessera_poll_capture`].
+    /// `[track, start, frames, channels]` of the chunk returned by [`freedaw_poll_capture`].
     capture_info: [f64; 4],
     capture_data: [f32; 2 * CAPTURE_CHUNK_FRAMES],
     interleaved: Vec<f32>,
     out_l: Vec<f32>,
     out_r: Vec<f32>,
-    /// Arguments of the command being sent (written by JS before [`tessera_command`]).
+    /// Arguments of the command being sent (written by JS before [`freedaw_command`]).
     command_args: [f64; MAX_ARGS],
-    /// Arguments of the event returned by [`tessera_poll_event`].
+    /// Arguments of the event returned by [`freedaw_poll_event`].
     event_args: [f64; MAX_ARGS],
-    /// `[frame, value]` pairs written by JS before [`tessera_automation_commit`].
+    /// `[frame, value]` pairs written by JS before [`freedaw_automation_commit`].
     automation: Vec<f64>,
 }
 
@@ -50,7 +50,7 @@ pub struct PendingSource {
 
 /// Creates an engine. Returns null if `sample_rate` is not positive and finite.
 #[unsafe(no_mangle)]
-pub extern "C" fn tessera_create(sample_rate: f32) -> *mut Handle {
+pub extern "C" fn freedaw_create(sample_rate: f32) -> *mut Handle {
     if !(sample_rate.is_finite() && sample_rate > 0.0) {
         return core::ptr::null_mut();
     }
@@ -78,32 +78,32 @@ pub extern "C" fn tessera_create(sample_rate: f32) -> *mut Handle {
 }
 
 /// # Safety
-/// `handle` must come from [`tessera_create`] and not be used afterwards.
+/// `handle` must come from [`freedaw_create`] and not be used afterwards.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_destroy(handle: *mut Handle) {
+pub unsafe extern "C" fn freedaw_destroy(handle: *mut Handle) {
     if !handle.is_null() {
-        // SAFETY: caller guarantees `handle` came from `Box::into_raw` in `tessera_create`.
+        // SAFETY: caller guarantees `handle` came from `Box::into_raw` in `freedaw_create`.
         drop(unsafe { Box::from_raw(handle) });
     }
 }
 
-/// Where JS writes a command's `MAX_ARGS` `f64` arguments before [`tessera_command`].
+/// Where JS writes a command's `MAX_ARGS` `f64` arguments before [`freedaw_command`].
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_command_args(handle: *mut Handle) -> *mut f64 {
+pub unsafe extern "C" fn freedaw_command_args(handle: *mut Handle) -> *mut f64 {
     // SAFETY: caller guarantees `handle` is null or live.
     unsafe { handle.as_mut() }.map_or(core::ptr::null_mut(), |h| h.command_args.as_mut_ptr())
 }
 
-/// Queues the command `op` with the arguments in [`tessera_command_args`]. Returns 1 on
+/// Queues the command `op` with the arguments in [`freedaw_command_args`]. Returns 1 on
 /// success, 0 if the opcode is unknown, the queue is full or `handle` is null.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_command(handle: *mut Handle, op: u32) -> u32 {
+pub unsafe extern "C" fn freedaw_command(handle: *mut Handle, op: u32) -> u32 {
     // SAFETY: caller guarantees `handle` is null or live.
     let Some(h) = (unsafe { handle.as_mut() }) else {
         return 0;
@@ -113,19 +113,19 @@ pub unsafe extern "C" fn tessera_command(handle: *mut Handle, op: u32) -> u32 {
         args: h.command_args,
     }) {
         // Called from `process()`: never allocate (device state comes via
-        // `tessera_device_create`).
+        // `freedaw_device_create`).
         Some(command) => h.controller.queue(command).is_ok() as u32,
         None => 0,
     }
 }
 
 /// Planar input buffer for channel 0 (left) or 1 (right), [`MAX_FRAMES`] long. JS writes the
-/// block's input here before [`tessera_process`].
+/// block's input here before [`freedaw_process`].
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_input(handle: *mut Handle, channel: u32) -> *mut f32 {
+pub unsafe extern "C" fn freedaw_input(handle: *mut Handle, channel: u32) -> *mut f32 {
     // SAFETY: caller guarantees `handle` is null or live.
     match (unsafe { handle.as_mut() }, channel) {
         (Some(h), 0) => h.in_l.as_mut_ptr(),
@@ -135,13 +135,13 @@ pub unsafe extern "C" fn tessera_input(handle: *mut Handle, channel: u32) -> *mu
 }
 
 /// Renders `frames` stereo frames (clamped to [`MAX_FRAMES`]) into the buffers returned by
-/// [`tessera_output`], consuming `in_channels` (0–2) channels from [`tessera_input`].
+/// [`freedaw_output`], consuming `in_channels` (0–2) channels from [`freedaw_input`].
 /// Returns the number of frames rendered.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_process(
+pub unsafe extern "C" fn freedaw_process(
     handle: *mut Handle,
     frames: u32,
     in_channels: u32,
@@ -174,12 +174,12 @@ pub unsafe extern "C" fn tessera_process(
     frames as u32
 }
 
-/// Planar output of the last [`tessera_process`] call: channel 0 (left) or 1 (right).
+/// Planar output of the last [`freedaw_process`] call: channel 0 (left) or 1 (right).
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_output(handle: *const Handle, channel: u32) -> *const f32 {
+pub unsafe extern "C" fn freedaw_output(handle: *const Handle, channel: u32) -> *const f32 {
     // SAFETY: caller guarantees `handle` is null or live.
     match (unsafe { handle.as_ref() }, channel) {
         (Some(h), 0) => h.out_l.as_ptr(),
@@ -188,23 +188,23 @@ pub unsafe extern "C" fn tessera_output(handle: *const Handle, channel: u32) -> 
     }
 }
 
-/// Where [`tessera_poll_event`] writes an event's arguments.
+/// Where [`freedaw_poll_event`] writes an event's arguments.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_event_args(handle: *const Handle) -> *const f64 {
+pub unsafe extern "C" fn freedaw_event_args(handle: *const Handle) -> *const f64 {
     // SAFETY: caller guarantees `handle` is null or live.
     unsafe { handle.as_ref() }.map_or(core::ptr::null(), |h| h.event_args.as_ptr())
 }
 
 /// Pops the next engine event: returns its opcode and writes its arguments to
-/// [`tessera_event_args`], or returns -1 when there are none.
+/// [`freedaw_event_args`], or returns -1 when there are none.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_poll_event(handle: *mut Handle) -> i32 {
+pub unsafe extern "C" fn freedaw_poll_event(handle: *mut Handle) -> i32 {
     // SAFETY: caller guarantees `handle` is null or live.
     let Some(h) = (unsafe { handle.as_mut() }) else {
         return -1;
@@ -219,33 +219,33 @@ pub unsafe extern "C" fn tessera_poll_event(handle: *mut Handle) -> i32 {
     }
 }
 
-/// Where [`tessera_poll_capture`] writes the chunk's `[track, start, frames, channels]`.
+/// Where [`freedaw_poll_capture`] writes the chunk's `[track, start, frames, channels]`.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_capture_info(handle: *const Handle) -> *const f64 {
+pub unsafe extern "C" fn freedaw_capture_info(handle: *const Handle) -> *const f64 {
     // SAFETY: caller guarantees `handle` is null or live.
     unsafe { handle.as_ref() }.map_or(core::ptr::null(), |h| h.capture_info.as_ptr())
 }
 
-/// Where [`tessera_poll_capture`] writes the chunk's interleaved samples.
+/// Where [`freedaw_poll_capture`] writes the chunk's interleaved samples.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_capture_data(handle: *const Handle) -> *const f32 {
+pub unsafe extern "C" fn freedaw_capture_data(handle: *const Handle) -> *const f32 {
     // SAFETY: caller guarantees `handle` is null or live.
     unsafe { handle.as_ref() }.map_or(core::ptr::null(), |h| h.capture_data.as_ptr())
 }
 
-/// Pops the next captured-input chunk into [`tessera_capture_info`]/[`tessera_capture_data`].
+/// Pops the next captured-input chunk into [`freedaw_capture_info`]/[`freedaw_capture_data`].
 /// Returns 1, or 0 when there is none. Allocation-free (callable from `process()`).
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_poll_capture(handle: *mut Handle) -> u32 {
+pub unsafe extern "C" fn freedaw_poll_capture(handle: *mut Handle) -> u32 {
     // SAFETY: caller guarantees `handle` is null or live.
     let Some(h) = (unsafe { handle.as_mut() }) else {
         return 0;
@@ -266,10 +266,10 @@ pub unsafe extern "C" fn tessera_poll_capture(handle: *mut Handle) -> u32 {
 }
 
 /// Allocates a zeroed source of `channels × frames` for JS to fill with
-/// [`tessera_source_channel`]. Call from the worklet's message handler, never from
+/// [`freedaw_source_channel`]. Call from the worklet's message handler, never from
 /// `process()`. Returns null for zero channels.
 #[unsafe(no_mangle)]
-pub extern "C" fn tessera_source_create(channels: u32, frames: u32) -> *mut PendingSource {
+pub extern "C" fn freedaw_source_create(channels: u32, frames: u32) -> *mut PendingSource {
     if channels == 0 {
         return core::ptr::null_mut();
     }
@@ -280,9 +280,9 @@ pub extern "C" fn tessera_source_create(channels: u32, frames: u32) -> *mut Pend
 /// Writable samples of channel `ch` of a pending source, or null.
 ///
 /// # Safety
-/// `pending` must be null or a live pointer from [`tessera_source_create`].
+/// `pending` must be null or a live pointer from [`freedaw_source_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_source_channel(pending: *mut PendingSource, ch: u32) -> *mut f32 {
+pub unsafe extern "C" fn freedaw_source_channel(pending: *mut PendingSource, ch: u32) -> *mut f32 {
     // SAFETY: caller guarantees `pending` is null or live.
     let Some(p) = (unsafe { pending.as_mut() }) else {
         return core::ptr::null_mut();
@@ -298,10 +298,10 @@ pub unsafe extern "C" fn tessera_source_channel(pending: *mut PendingSource, ch:
 /// Returns 1 on success, 0 if the queue was full (the source is dropped).
 ///
 /// # Safety
-/// `handle` must be live; `pending` must come from [`tessera_source_create`] and not be
+/// `handle` must be live; `pending` must come from [`freedaw_source_create`] and not be
 /// used afterwards.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_source_commit(
+pub unsafe extern "C" fn freedaw_source_commit(
     handle: *mut Handle,
     pending: *mut PendingSource,
     source: u32,
@@ -323,9 +323,9 @@ pub unsafe extern "C" fn tessera_source_commit(
 /// Frees a pending source without committing it.
 ///
 /// # Safety
-/// `pending` must come from [`tessera_source_create`] and not be used afterwards.
+/// `pending` must come from [`freedaw_source_create`] and not be used afterwards.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_source_discard(pending: *mut PendingSource) {
+pub unsafe extern "C" fn freedaw_source_discard(pending: *mut PendingSource) {
     if !pending.is_null() {
         // SAFETY: caller guarantees ownership.
         drop(unsafe { Box::from_raw(pending) });
@@ -337,20 +337,20 @@ pub unsafe extern "C" fn tessera_source_discard(pending: *mut PendingSource) {
 /// handler, never from `process()`. Returns 1 on success.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_device_create(handle: *mut Handle, device: u32, kind: u32) -> u32 {
+pub unsafe extern "C" fn freedaw_device_create(handle: *mut Handle, device: u32, kind: u32) -> u32 {
     // SAFETY: caller guarantees `handle` is null or live.
     unsafe { handle.as_mut() }.map_or(0, |h| h.controller.create_device(device, kind) as u32)
 }
 
 /// Room for `points` automation points as `[frame, value]` `f64` pairs; JS fills it before
-/// [`tessera_automation_commit`]. Allocates: message handler only. Null if `handle` is null.
+/// [`freedaw_automation_commit`]. Allocates: message handler only. Null if `handle` is null.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_automation_points(handle: *mut Handle, points: u32) -> *mut f64 {
+pub unsafe extern "C" fn freedaw_automation_points(handle: *mut Handle, points: u32) -> *mut f64 {
     // SAFETY: caller guarantees `handle` is null or live.
     let Some(h) = (unsafe { handle.as_mut() }) else {
         return core::ptr::null_mut();
@@ -360,14 +360,14 @@ pub unsafe extern "C" fn tessera_automation_points(handle: *mut Handle, points: 
     h.automation.as_mut_ptr()
 }
 
-/// Sets automation lane `lane` on `track` from the points in [`tessera_automation_points`]
+/// Sets automation lane `lane` on `track` from the points in [`freedaw_automation_points`]
 /// (`points` of them; none removes the lane). The target is `kind` 0 = volume, 1 = pan,
 /// 2 = send `index`, 3 = parameter `index` of `device`. Returns 1 on success.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_automation_commit(
+pub unsafe extern "C" fn freedaw_automation_commit(
     handle: *mut Handle,
     points: u32,
     lane: u32,
@@ -400,9 +400,9 @@ pub unsafe extern "C" fn tessera_automation_commit(
 /// from `process()`. Returns the number of items freed.
 ///
 /// # Safety
-/// `handle` must be null or a live pointer from [`tessera_create`].
+/// `handle` must be null or a live pointer from [`freedaw_create`].
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn tessera_collect_garbage(handle: *mut Handle) -> u32 {
+pub unsafe extern "C" fn freedaw_collect_garbage(handle: *mut Handle) -> u32 {
     // SAFETY: caller guarantees `handle` is null or live.
     unsafe { handle.as_mut() }.map_or(0, |h| h.controller.collect_garbage() as u32)
 }
@@ -415,22 +415,22 @@ mod tests {
     unsafe fn send(h: *mut Handle, command: Command) -> u32 {
         let raw = command.to_raw();
         unsafe {
-            core::slice::from_raw_parts_mut(tessera_command_args(h), MAX_ARGS)
+            core::slice::from_raw_parts_mut(freedaw_command_args(h), MAX_ARGS)
                 .copy_from_slice(&raw.args);
-            tessera_command(h, raw.op)
+            freedaw_command(h, raw.op)
         }
     }
 
     #[test]
     fn abi_round_trip() {
-        assert!(tessera_create(0.0).is_null());
-        let h = tessera_create(48_000.0);
+        assert!(freedaw_create(0.0).is_null());
+        let h = freedaw_create(48_000.0);
         unsafe {
-            let pending = tessera_source_create(2, 1000);
-            core::slice::from_raw_parts_mut(tessera_source_channel(pending, 0), 1000).fill(0.5);
-            core::slice::from_raw_parts_mut(tessera_source_channel(pending, 1), 1000).fill(-0.25);
-            assert!(tessera_source_channel(pending, 2).is_null());
-            assert_eq!(tessera_source_commit(h, pending, 7), 1);
+            let pending = freedaw_source_create(2, 1000);
+            core::slice::from_raw_parts_mut(freedaw_source_channel(pending, 0), 1000).fill(0.5);
+            core::slice::from_raw_parts_mut(freedaw_source_channel(pending, 1), 1000).fill(-0.25);
+            assert!(freedaw_source_channel(pending, 2).is_null());
+            assert_eq!(freedaw_source_commit(h, pending, 7), 1);
 
             assert_eq!(send(h, Command::AddTrack { track: 1 }), 1);
             let clip = Command::SetClip {
@@ -446,24 +446,24 @@ mod tests {
             };
             assert_eq!(send(h, clip), 1);
             assert_eq!(send(h, Command::Play), 1);
-            assert_eq!(tessera_command(h, 999), 0);
+            assert_eq!(freedaw_command(h, 999), 0);
 
-            assert_eq!(tessera_process(h, 128, 0), 128);
-            let l = core::slice::from_raw_parts(tessera_output(h, 0), 128);
-            let r = core::slice::from_raw_parts(tessera_output(h, 1), 128);
+            assert_eq!(freedaw_process(h, 128, 0), 128);
+            let l = core::slice::from_raw_parts(freedaw_output(h, 0), 128);
+            let r = core::slice::from_raw_parts(freedaw_output(h, 1), 128);
             assert!(l.iter().all(|&s| s == 0.5) && r.iter().all(|&s| s == -0.25));
-            assert!(tessera_output(h, 2).is_null());
+            assert!(freedaw_output(h, 2).is_null());
 
             for _ in 0..20 {
-                tessera_process(h, 128, 0);
+                freedaw_process(h, 128, 0);
             }
             let mut saw_transport = false;
             loop {
-                let op = tessera_poll_event(h);
+                let op = freedaw_poll_event(h);
                 if op < 0 {
                     break;
                 }
-                let args = core::slice::from_raw_parts(tessera_event_args(h), MAX_ARGS);
+                let args = core::slice::from_raw_parts(freedaw_event_args(h), MAX_ARGS);
                 let raw = RawMessage {
                     op: op as u32,
                     args: args.try_into().unwrap(),
@@ -475,18 +475,18 @@ mod tests {
             assert!(saw_transport);
 
             assert_eq!(send(h, Command::RemoveSource { source: 7 }), 1);
-            tessera_process(h, 128, 0);
-            assert_eq!(tessera_collect_garbage(h), 1);
-            assert_eq!(tessera_process(h, 1_000_000, 0), MAX_FRAMES as u32);
-            tessera_destroy(h);
-            assert_eq!(tessera_process(core::ptr::null_mut(), 128, 0), 0);
-            tessera_source_discard(tessera_source_create(1, 10));
+            freedaw_process(h, 128, 0);
+            assert_eq!(freedaw_collect_garbage(h), 1);
+            assert_eq!(freedaw_process(h, 1_000_000, 0), MAX_FRAMES as u32);
+            freedaw_destroy(h);
+            assert_eq!(freedaw_process(core::ptr::null_mut(), 128, 0), 0);
+            freedaw_source_discard(freedaw_source_create(1, 10));
         }
     }
 
     #[test]
     fn records_planar_input_through_the_abi() {
-        let h = tessera_create(48_000.0);
+        let h = freedaw_create(48_000.0);
         unsafe {
             for c in [
                 Command::AddTrack { track: 3 },
@@ -504,16 +504,16 @@ mod tests {
             ] {
                 assert_eq!(send(h, c), 1);
             }
-            core::slice::from_raw_parts_mut(tessera_input(h, 0), 128).fill(0.25);
-            core::slice::from_raw_parts_mut(tessera_input(h, 1), 128).fill(-0.5);
-            tessera_process(h, 128, 2);
-            assert_eq!(tessera_poll_capture(h), 1);
-            let info = core::slice::from_raw_parts(tessera_capture_info(h), 4);
+            core::slice::from_raw_parts_mut(freedaw_input(h, 0), 128).fill(0.25);
+            core::slice::from_raw_parts_mut(freedaw_input(h, 1), 128).fill(-0.5);
+            freedaw_process(h, 128, 2);
+            assert_eq!(freedaw_poll_capture(h), 1);
+            let info = core::slice::from_raw_parts(freedaw_capture_info(h), 4);
             assert_eq!(info, &[3.0, 0.0, 128.0, 2.0]);
-            let data = core::slice::from_raw_parts(tessera_capture_data(h), 4);
+            let data = core::slice::from_raw_parts(freedaw_capture_data(h), 4);
             assert_eq!(data, &[0.25, -0.5, 0.25, -0.5]);
-            assert_eq!(tessera_poll_capture(h), 0);
-            tessera_destroy(h);
+            assert_eq!(freedaw_poll_capture(h), 0);
+            freedaw_destroy(h);
         }
     }
 }

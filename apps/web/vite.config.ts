@@ -9,7 +9,7 @@ const crossOriginIsolation = {
 };
 
 export default defineConfig({
-  // Sub-path deployments such as GitHub Pages (`/tessera/`) set BASE_PATH.
+  // Sub-path deployments such as GitHub Pages (`/freedaw/`) set BASE_PATH.
   base: process.env.BASE_PATH ?? "/",
   plugins: [react()],
   server: { headers: crossOriginIsolation },

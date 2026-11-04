@@ -1,4 +1,4 @@
-import { DEVICES, type Device, type DeviceKind, type Project, type Track } from "@tessera/schema";
+import { DEVICES, type Device, type DeviceKind, type Project, type Track } from "@freedaw/schema";
 import { type PointerEvent as ReactPointerEvent, useState } from "react";
 import { SILENT } from "../Meter";
 import {

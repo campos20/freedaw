@@ -45,7 +45,7 @@ interface SavedClip {
 async function saved(page: Page): Promise<{ name: string; tracks: { name: string; clips: SavedClip[] }[] }> {
   await expect(page.getByTestId("save-state")).toHaveText("All changes saved");
   return page.evaluate(async () => {
-    const id = localStorage.getItem("tessera.lastProject")!;
+    const id = localStorage.getItem("freedaw.lastProject")!;
     const dir = await (
       await (await navigator.storage.getDirectory()).getDirectoryHandle("projects")
     ).getDirectoryHandle(id);
@@ -147,7 +147,7 @@ test("create, edit, save, reload and keep editing a project", async ({ page }) =
   expect(errors).toEqual([]);
 });
 
-test("exports a .tessera file and imports it as a new project", async ({ page }, testInfo) => {
+test("exports a .freedaw file and imports it as a new project", async ({ page }, testInfo) => {
   await open(page);
   await page
     .getByTestId("import")
@@ -157,10 +157,10 @@ test("exports a .tessera file and imports it as a new project", async ({ page },
 
   await page.getByRole("button", { name: /Untitled/ }).click();
   const downloading = page.waitForEvent("download");
-  await page.getByRole("menuitem", { name: "Export .tessera…" }).click();
+  await page.getByRole("menuitem", { name: "Export .freedaw…" }).click();
   const download = await downloading;
-  expect(download.suggestedFilename()).toBe("Untitled.tessera");
-  const archive = testInfo.outputPath("export.tessera");
+  expect(download.suggestedFilename()).toBe("Untitled.freedaw");
+  const archive = testInfo.outputPath("export.freedaw");
   await download.saveAs(archive);
 
   // Start over, then import the archive.

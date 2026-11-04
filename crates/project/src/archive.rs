@@ -1,4 +1,4 @@
-//! `.tessera` archives: an uncompressed (stored) zip holding `project.json` and the audio
+//! `.freedaw` archives: an uncompressed (stored) zip holding `project.json` and the audio
 //! files. Audio is most of the size and barely compresses, so storing keeps this small and
 //! dependency-free. Only archives written by [`write`] (or any zip using the stored method)
 //! can be read.
@@ -75,7 +75,7 @@ pub fn read(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, ProjectError> {
         .rev()
         .take(22 + u16::MAX as usize)
         .find(|&i| get32(bytes, i) == Some(END_OF_CENTRAL))
-        .ok_or_else(|| invalid("not a .tessera archive"))?;
+        .ok_or_else(|| invalid("not a .freedaw archive"))?;
     let count = get16(bytes, eocd + 10).ok_or_else(|| invalid("truncated archive"))? as usize;
     let mut pos = get32(bytes, eocd + 16).ok_or_else(|| invalid("truncated archive"))? as usize;
 

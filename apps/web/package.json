@@ -1,5 +1,5 @@
 {
-  "name": "@tessera/web",
+  "name": "@freedaw/web",
   "version": "0.1.0",
   "private": true,
   "license": "GPL-3.0-or-later",
@@ -10,11 +10,11 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "e2e": "vite build && playwright test",
-    "e2e:pages": "BASE_PATH=/tessera/ vite build && E2E_PAGES=1 playwright test"
+    "e2e:pages": "BASE_PATH=/freedaw/ vite build && E2E_PAGES=1 playwright test"
   },
   "dependencies": {
-    "@tessera/platform": "workspace:*",
-    "@tessera/ui": "workspace:*",
+    "@freedaw/platform": "workspace:*",
+    "@freedaw/ui": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

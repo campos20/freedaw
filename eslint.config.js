@@ -36,8 +36,8 @@ export default tseslint.config(
           patterns: [
             { group: ["@tauri-apps/*"], message: "packages/ui must not import Tauri; use AudioPlatform." },
             {
-              group: ["@tessera/platform/*"],
-              message: "Import only the AudioPlatform interface from @tessera/platform.",
+              group: ["@freedaw/platform/*"],
+              message: "Import only the AudioPlatform interface from @freedaw/platform.",
             },
           ],
         },

@@ -11,7 +11,7 @@ import {
   SCHEMA_VERSION,
   type Source,
   type Track,
-} from "@tessera/schema";
+} from "@freedaw/schema";
 import { trackColor } from "./colors";
 
 /**

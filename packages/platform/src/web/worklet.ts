@@ -4,7 +4,7 @@
  * REAL-TIME: nothing in `process()` may allocate. Views over WASM memory are only rebuilt
  * when the memory has grown, which only happens in the message handler (source uploads).
  */
-import { EventLayout, MAX_ARGS } from "@tessera/schema";
+import { EventLayout, MAX_ARGS } from "@freedaw/schema";
 import { CaptureRing, CHUNK_SAMPLES, pumpCapture } from "./captureRing";
 import { MessageRing } from "./messageRing";
 import { PROCESSOR_NAME, type ProcessorOptions, type WorkletReply, type WorkletRequest } from "./protocol";
@@ -22,7 +22,7 @@ declare class AudioWorkletProcessor {
 
 const QUANTUM = 128;
 
-class TesseraProcessor extends AudioWorkletProcessor {
+class FreeDawProcessor extends AudioWorkletProcessor {
   private readonly engine: EngineExports;
   private readonly handle: number;
   private readonly commands: MessageRing;
@@ -49,11 +49,11 @@ class TesseraProcessor extends AudioWorkletProcessor {
     super();
     const opts = options.processorOptions as ProcessorOptions;
     this.engine = instantiateEngine(opts.module);
-    this.handle = this.engine.tessera_create(sampleRate);
+    this.handle = this.engine.freedaw_create(sampleRate);
     this.commands = new MessageRing(opts.commands, opts.ringCapacity);
     this.events = new MessageRing(opts.events, opts.ringCapacity);
     this.capture = new CaptureRing(opts.capture, opts.captureCapacity);
-    this.pollCapture = () => this.engine.tessera_poll_capture(this.handle) !== 0;
+    this.pollCapture = () => this.engine.freedaw_poll_capture(this.handle) !== 0;
     this.reportOverrun = (track) => {
       // Same event the native engine emits when its own capture queue overflows.
       this.overrunArgs[0] = track;
@@ -64,7 +64,7 @@ class TesseraProcessor extends AudioWorkletProcessor {
     this.sink = (op, args, base) => {
       const dst = this.commandArgs;
       for (let i = 0; i < MAX_ARGS; i++) dst[i] = args[base + i]!;
-      this.engine.tessera_command(this.handle, op);
+      this.engine.freedaw_command(this.handle, op);
     };
     this.port.onmessage = (e: MessageEvent<WorkletRequest>) => this.onRequest(e.data);
     this.reply({ type: "ready" });
@@ -85,14 +85,14 @@ class TesseraProcessor extends AudioWorkletProcessor {
     const inChannels = Math.min(2, input?.length ?? 0);
     if (inChannels > 0) this.inL.set(input![0]!); // Same length as the output (one render quantum).
     if (inChannels > 1) this.inR.set(input![1]!);
-    this.engine.tessera_process(this.handle, frames, inChannels);
+    this.engine.freedaw_process(this.handle, frames, inChannels);
     left.set(this.outL);
     output[1]?.set(this.outR);
 
     for (
-      let op = this.engine.tessera_poll_event(this.handle);
+      let op = this.engine.freedaw_poll_event(this.handle);
       op >= 0;
-      op = this.engine.tessera_poll_event(this.handle)
+      op = this.engine.freedaw_poll_event(this.handle)
     ) {
       // Dropping events when the main thread is behind is fine.
       this.events.push(op, this.eventArgs);
@@ -107,14 +107,14 @@ class TesseraProcessor extends AudioWorkletProcessor {
     const buffer = engine.memory.buffer;
     this.memoryBuffer = buffer;
     this.viewFrames = frames;
-    this.commandArgs = new Float64Array(buffer, engine.tessera_command_args(handle), MAX_ARGS);
-    this.eventArgs = new Float64Array(buffer, engine.tessera_event_args(handle), MAX_ARGS);
-    this.outL = new Float32Array(buffer, engine.tessera_output(handle, 0), frames);
-    this.outR = new Float32Array(buffer, engine.tessera_output(handle, 1), frames);
-    this.inL = new Float32Array(buffer, engine.tessera_input(handle, 0), frames);
-    this.inR = new Float32Array(buffer, engine.tessera_input(handle, 1), frames);
-    this.captureInfo = new Float64Array(buffer, engine.tessera_capture_info(handle), 4);
-    this.captureData = new Float32Array(buffer, engine.tessera_capture_data(handle), CHUNK_SAMPLES);
+    this.commandArgs = new Float64Array(buffer, engine.freedaw_command_args(handle), MAX_ARGS);
+    this.eventArgs = new Float64Array(buffer, engine.freedaw_event_args(handle), MAX_ARGS);
+    this.outL = new Float32Array(buffer, engine.freedaw_output(handle, 0), frames);
+    this.outR = new Float32Array(buffer, engine.freedaw_output(handle, 1), frames);
+    this.inL = new Float32Array(buffer, engine.freedaw_input(handle, 0), frames);
+    this.inR = new Float32Array(buffer, engine.freedaw_input(handle, 1), frames);
+    this.captureInfo = new Float64Array(buffer, engine.freedaw_capture_info(handle), 4);
+    this.captureData = new Float32Array(buffer, engine.freedaw_capture_data(handle), CHUNK_SAMPLES);
   }
 
   /** Runs between render quanta, so it may allocate. */
@@ -123,7 +123,7 @@ class TesseraProcessor extends AudioWorkletProcessor {
     try {
       switch (request.type) {
         case "source-begin": {
-          const pending = engine.tessera_source_create(request.channels, request.frames);
+          const pending = engine.freedaw_source_create(request.channels, request.frames);
           if (pending === 0) throw new Error("source has no channels");
           this.pending.set(request.id, pending);
           break;
@@ -132,7 +132,7 @@ class TesseraProcessor extends AudioWorkletProcessor {
           const pending = this.pending.get(request.id);
           if (pending === undefined) throw new Error(`unknown source ${request.id}`);
           request.data.forEach((samples, ch) => {
-            const ptr = engine.tessera_source_channel(pending, ch);
+            const ptr = engine.freedaw_source_channel(pending, ch);
             if (ptr !== 0)
               new Float32Array(engine.memory.buffer, ptr + request.offset * 4, samples.length).set(samples);
           });
@@ -142,22 +142,22 @@ class TesseraProcessor extends AudioWorkletProcessor {
           const pending = this.pending.get(request.id);
           if (pending === undefined) throw new Error(`unknown source ${request.id}`);
           this.pending.delete(request.id);
-          if (!engine.tessera_source_commit(this.handle, pending, request.id))
+          if (!engine.freedaw_source_commit(this.handle, pending, request.id))
             throw new Error("engine queue full");
           break;
         }
         case "gc":
-          engine.tessera_collect_garbage(this.handle);
+          engine.freedaw_collect_garbage(this.handle);
           break;
         case "device":
-          if (!engine.tessera_device_create(this.handle, request.id, request.kind))
+          if (!engine.freedaw_device_create(this.handle, request.id, request.kind))
             throw new Error("engine queue full");
           break;
         case "automation": {
           const count = request.points.length / 2;
-          const ptr = engine.tessera_automation_points(this.handle, count);
+          const ptr = engine.freedaw_automation_points(this.handle, count);
           if (count > 0) new Float64Array(engine.memory.buffer, ptr, count * 2).set(request.points);
-          const ok = engine.tessera_automation_commit(
+          const ok = engine.freedaw_automation_commit(
             this.handle,
             count,
             request.lane,
@@ -186,4 +186,4 @@ class TesseraProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor(PROCESSOR_NAME, TesseraProcessor);
+registerProcessor(PROCESSOR_NAME, FreeDawProcessor);

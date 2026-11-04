@@ -1,4 +1,4 @@
-import { DEVICES } from "@tessera/schema";
+import { DEVICES } from "@freedaw/schema";
 import { describe, expect, it } from "vitest";
 import { faderToGain, formatDb, formatParam, gainToFader, paramToUnit, unitToParam } from "./scale";
 

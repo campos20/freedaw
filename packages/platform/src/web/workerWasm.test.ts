@@ -1,5 +1,5 @@
 // Exercises the real worker.wasm (built by `pnpm build:wasm`): decoding the media crate's
-// fixtures, project migration and .tessera archives.
+// fixtures, project migration and .freedaw archives.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
@@ -50,7 +50,7 @@ describe("worker.wasm", () => {
     ];
     expect(unpackArchive(wasm, packArchive(wasm, entries))).toEqual(entries);
     expect(() => packArchive(wasm, [["../escape", new Uint8Array()]])).toThrow(/unsafe path/);
-    expect(() => unpackArchive(wasm, new Uint8Array([1, 2, 3]))).toThrow(/not a .tessera archive/);
+    expect(() => unpackArchive(wasm, new Uint8Array([1, 2, 3]))).toThrow(/not a .freedaw archive/);
   });
 
   it("migrates project files and rejects newer schemas", () => {

@@ -12,7 +12,7 @@ async function open(page: Page) {
 async function saved(page: Page) {
   await expect(page.getByTestId("save-state")).toHaveText("All changes saved");
   return page.evaluate(async () => {
-    const id = localStorage.getItem("tessera.lastProject")!;
+    const id = localStorage.getItem("freedaw.lastProject")!;
     const dir = await (
       await (await navigator.storage.getDirectory()).getDirectoryHandle("projects")
     ).getDirectoryHandle(id);

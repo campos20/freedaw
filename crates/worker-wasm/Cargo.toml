@@ -1,6 +1,6 @@
 [package]
 name = "worker-wasm"
-description = "WASM module for the web edition's worker: decoding (media), project loading and .tessera archives (project). Raw C ABI."
+description = "WASM module for the web edition's worker: decoding (media), project loading and .freedaw archives (project). Raw C ABI."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

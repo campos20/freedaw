@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 publish = false
-description = "Desktop audio I/O for Tessera: cpal output stream driving engine-core, device enumeration."
+description = "Desktop audio I/O for FreeDAW: cpal output stream driving engine-core, device enumeration."
 
 [features]
 default = []

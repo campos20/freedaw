@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 publish = false
-description = "Tessera project model: serde schema, versioning and migrations. Shared by both editions."
+description = "FreeDAW project model: serde schema, versioning and migrations. Shared by both editions."
 
 [features]
 default = []

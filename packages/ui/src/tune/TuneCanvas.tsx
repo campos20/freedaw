@@ -1,4 +1,4 @@
-import type { Key, Note, TuneAnalysis } from "@tessera/schema";
+import type { Key, Note, TuneAnalysis } from "@freedaw/schema";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { useCanvas } from "../hooks/useCanvas";
 import { frameOut, MIN_DURATION, noteCurves, noteName, scalePitchClasses, target } from "./model";

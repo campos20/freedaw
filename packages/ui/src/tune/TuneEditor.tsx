@@ -1,4 +1,4 @@
-import type { Clip, Key, Note, Project, TuneAnalysis } from "@tessera/schema";
+import type { Clip, Key, Note, Project, TuneAnalysis } from "@freedaw/schema";
 import type { Draft } from "immer";
 import { type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useElementSize } from "../hooks/useElementSize";

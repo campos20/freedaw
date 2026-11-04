@@ -1,4 +1,4 @@
-import type { Peaks } from "@tessera/schema";
+import type { Peaks } from "@freedaw/schema";
 
 /**
  * Min/max peak pyramid for fast waveform drawing at any zoom. Level 0 is the imported peak

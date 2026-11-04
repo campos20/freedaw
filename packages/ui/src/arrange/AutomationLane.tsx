@@ -5,7 +5,7 @@ import {
   type ParamInfo,
   type Project,
   type Track,
-} from "@tessera/schema";
+} from "@freedaw/schema";
 import { type PointerEvent, useRef } from "react";
 import { useCanvas } from "../hooks/useCanvas";
 import { useGesture } from "../mixer/gesture";

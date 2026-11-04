@@ -196,10 +196,10 @@ importers:
 
   apps/desktop:
     dependencies:
-      '@tessera/platform':
+      '@freedaw/platform':
         specifier: workspace:*
         version: link:../../packages/platform
-      '@tessera/ui':
+      '@freedaw/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       react:
@@ -227,10 +227,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@tessera/platform':
+      '@freedaw/platform':
         specifier: workspace:*
         version: link:../../packages/platform
-      '@tessera/ui':
+      '@freedaw/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       react:
@@ -264,7 +264,7 @@ importers:
       '@tauri-apps/plugin-dialog':
         specifier: ^2.8.4
         version: 2.8.4
-      '@tessera/schema':
+      '@freedaw/schema':
         specifier: workspace:*
         version: link:../schema
     devDependencies:
@@ -276,10 +276,10 @@ importers:
 
   packages/ui:
     dependencies:
-      '@tessera/platform':
+      '@freedaw/platform':
         specifier: workspace:*
         version: link:../platform
-      '@tessera/schema':
+      '@freedaw/schema':
         specifier: workspace:*
         version: link:../schema
       immer:

@@ -1,6 +1,6 @@
-# Tessera: guide for coding agents
+# FreeDAW: guide for coding agents
 
-Tessera is a free DAW whose differentiator is **Tune**: graphical, note-level pitch and timing
+FreeDAW is a free DAW whose differentiator is **Tune**: graphical, note-level pitch and timing
 editing (in the spirit of existing pitch-alignment software), monophonic only (vocals, bass, solo
 instruments). It ships as two editions from one codebase:
 
@@ -47,6 +47,8 @@ layers only do I/O.
 - **Third-party products.** Don't name proprietary products or competitors in code, docs or
   commits. Describe the capability instead (e.g. "existing pitch-alignment software").
 - **License.** GPL-3.0-or-later; the ASIO SDK's GPLv3 option depends on it.
+- **Former name.** The project was called Tessera. The remaining `tessera` strings are deliberate
+  compatibility: `.tessera` imports, old localStorage keys and the old desktop data folder.
 
 ## Workflow
 
@@ -76,7 +78,7 @@ Before handing work back, run `cargo fmt --all`, `cargo clippy --workspace --all
 ```
 crates/engine-core     engine: DSP, transport, mixer, command/event protocol. No I/O, no threads
 crates/tune            pitch analysis, note segmentation, key/tempo, PSOLA rendering
-crates/project         project model, schema versions and migrations, .tessera archives
+crates/project         project model, schema versions and migrations, .freedaw archives
 crates/engine-wasm     raw C-ABI WASM build of engine-core for the AudioWorklet (no wasm-bindgen)
 crates/engine-native   cpal input/output, device settings, take recorder, soak test (desktop)
 crates/media           decoding (symphonia), resampling (rubato), waveform peaks; no engine dependency
@@ -108,11 +110,11 @@ packages/schema        generated TS types
     glitch-free in the web edition on a mid-range laptop.
   - Decisions: decoding lives in `crates/media`; the web edition stays on stable Rust, so decoded
     audio is copied into the worklet's WASM memory in chunks at import time, never in `process()`.
-- [x] **M2** Timeline UI and projects: arrange view, undo/redo, save/load, `.tessera` zip, migrations.
+- [x] **M2** Timeline UI and projects: arrange view, undo/redo, save/load, `.freedaw` zip, migrations.
   - Accept: create, edit, save, reload and continue editing a project in both editions; a
     Playwright E2E test covers the web flow.
   - Decisions: timeline positions are frames at a fixed 48 kHz project rate (`crates/project`),
-    converted to engine frames only in `EngineSync`; `.tessera` is an uncompressed zip written by
+    converted to engine frames only in `EngineSync`; `.freedaw` is an uncompressed zip written by
     one Rust implementation (native on desktop, `worker-wasm` on the web); desktop projects live in
     the app data folder, web projects in OPFS; the engine keeps imported audio for the session so
     undo/redo of imports never re-decodes.

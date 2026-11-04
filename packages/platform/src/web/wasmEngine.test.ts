@@ -1,7 +1,7 @@
 // Exercises the real engine.wasm (built by `pnpm build:wasm`) through the same ABI and raw
 // encoding the worklet uses, so a mismatch between Rust and TypeScript fails here.
 import { readFileSync } from "node:fs";
-import { type Command, DEVICES, type Event, MASTER_TRACK, MAX_ARGS } from "@tessera/schema";
+import { type Command, DEVICES, type Event, MASTER_TRACK, MAX_ARGS } from "@freedaw/schema";
 import { describe, expect, it } from "vitest";
 import { decodeEvent, encodeCommand } from "./codec";
 import { type EngineExports, instantiateEngine } from "./wasmEngine";
@@ -12,26 +12,26 @@ const QUANTUM = 128;
 
 class TestEngine {
   readonly e: EngineExports = instantiateEngine(module);
-  readonly h = this.e.tessera_create(SR);
+  readonly h = this.e.freedaw_create(SR);
 
   send(command: Command) {
-    const args = new Float64Array(this.e.memory.buffer, this.e.tessera_command_args(this.h), MAX_ARGS);
-    expect(this.e.tessera_command(this.h, encodeCommand(command, args))).toBe(1);
+    const args = new Float64Array(this.e.memory.buffer, this.e.freedaw_command_args(this.h), MAX_ARGS);
+    expect(this.e.freedaw_command(this.h, encodeCommand(command, args))).toBe(1);
   }
 
   addSource(id: number, channels: Float32Array[]) {
-    const pending = this.e.tessera_source_create(channels.length, channels[0]!.length);
+    const pending = this.e.freedaw_source_create(channels.length, channels[0]!.length);
     channels.forEach((samples, ch) => {
-      new Float32Array(this.e.memory.buffer, this.e.tessera_source_channel(pending, ch), samples.length).set(
+      new Float32Array(this.e.memory.buffer, this.e.freedaw_source_channel(pending, ch), samples.length).set(
         samples,
       );
     });
-    expect(this.e.tessera_source_commit(this.h, pending, id)).toBe(1);
+    expect(this.e.freedaw_source_commit(this.h, pending, id)).toBe(1);
   }
 
   /** What the worklet's message handler does for `AddDevice` (state is created outside process()). */
   createDevice(id: number, kind: number) {
-    expect(this.e.tessera_device_create(this.h, id, kind)).toBe(1);
+    expect(this.e.freedaw_device_create(this.h, id, kind)).toBe(1);
   }
 
   automate(
@@ -42,26 +42,26 @@ class TestEngine {
     device: number,
     points: [number, number][],
   ) {
-    const ptr = this.e.tessera_automation_points(this.h, points.length);
+    const ptr = this.e.freedaw_automation_points(this.h, points.length);
     new Float64Array(this.e.memory.buffer, ptr, points.length * 2).set(points.flat());
-    expect(this.e.tessera_automation_commit(this.h, points.length, lane, track, kind, index, device)).toBe(1);
+    expect(this.e.freedaw_automation_commit(this.h, points.length, lane, track, kind, index, device)).toBe(1);
   }
 
   /** Renders `frames` in worklet-sized quanta; returns planar [left, right]. */
   render(frames: number): [Float32Array, Float32Array] {
     const out: [Float32Array, Float32Array] = [new Float32Array(frames), new Float32Array(frames)];
     for (let i = 0; i < frames; i += QUANTUM) {
-      const n = this.e.tessera_process(this.h, Math.min(QUANTUM, frames - i), 0);
-      out[0].set(new Float32Array(this.e.memory.buffer, this.e.tessera_output(this.h, 0), n), i);
-      out[1].set(new Float32Array(this.e.memory.buffer, this.e.tessera_output(this.h, 1), n), i);
+      const n = this.e.freedaw_process(this.h, Math.min(QUANTUM, frames - i), 0);
+      out[0].set(new Float32Array(this.e.memory.buffer, this.e.freedaw_output(this.h, 0), n), i);
+      out[1].set(new Float32Array(this.e.memory.buffer, this.e.freedaw_output(this.h, 1), n), i);
     }
     return out;
   }
 
   events(): Event[] {
     const out: Event[] = [];
-    for (let op = this.e.tessera_poll_event(this.h); op >= 0; op = this.e.tessera_poll_event(this.h)) {
-      const args = new Float64Array(this.e.memory.buffer, this.e.tessera_event_args(this.h), MAX_ARGS);
+    for (let op = this.e.freedaw_poll_event(this.h); op >= 0; op = this.e.freedaw_poll_event(this.h)) {
+      const args = new Float64Array(this.e.memory.buffer, this.e.freedaw_event_args(this.h), MAX_ARGS);
       const event = decodeEvent(op, args);
       if (event) out.push(event);
     }
@@ -112,7 +112,7 @@ describe("engine.wasm", () => {
     t.addSource(1, [new Float32Array(1000)]);
     t.send({ type: "RemoveSource", source: 1 });
     t.render(QUANTUM);
-    expect(t.e.tessera_collect_garbage(t.h)).toBe(1);
+    expect(t.e.freedaw_collect_garbage(t.h)).toBe(1);
   });
 
   it("does not grow memory while processing", () => {
@@ -140,7 +140,7 @@ describe("engine.wasm", () => {
 
     const start = performance.now();
     for (let i = 0; i < (SR * seconds) / QUANTUM; i++) {
-      t.e.tessera_process(t.h, QUANTUM, 0);
+      t.e.freedaw_process(t.h, QUANTUM, 0);
       if (i % 64 === 0) t.events();
     }
     const elapsed = (performance.now() - start) / 1000;
@@ -172,7 +172,7 @@ describe("engine.wasm", () => {
     t.send({ type: "RemoveAutomation", lane: 3 });
     t.send({ type: "RemoveDevice", device: 9 });
     t.render(QUANTUM);
-    expect(t.e.tessera_collect_garbage(t.h)).toBe(2);
+    expect(t.e.freedaw_collect_garbage(t.h)).toBe(2);
   });
 
   it("mixes a 12-track session with effects at least 10× faster than real time", () => {

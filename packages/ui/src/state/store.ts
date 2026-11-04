@@ -1,4 +1,4 @@
-import type { Peaks, Project } from "@tessera/schema";
+import type { Peaks, Project } from "@freedaw/schema";
 import { applyPatches, type Draft, enablePatches, type Patch, produce, produceWithPatches } from "immer";
 import { createStore } from "zustand/vanilla";
 

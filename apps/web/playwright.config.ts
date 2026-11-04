@@ -6,12 +6,12 @@ import { defineConfig, devices } from "@playwright/test";
 const FAKE_MIC = fileURLToPath(new URL("./e2e/fixtures/mic.wav", import.meta.url));
 
 // E2E_DEV=1 runs against the Vite dev server instead of the production build.
-// E2E_PAGES=1 mimics GitHub Pages: served under /tessera/ without COOP/COEP headers, so
-// isolation must come from public/coi-sw.js (build with BASE_PATH=/tessera/ first).
+// E2E_PAGES=1 mimics GitHub Pages: served under /freedaw/ without COOP/COEP headers, so
+// isolation must come from public/coi-sw.js (build with BASE_PATH=/freedaw/ first).
 const DEV = !!process.env.E2E_DEV;
 const PAGES = !!process.env.E2E_PAGES;
 const PORT = DEV ? 5173 : 4173;
-const BASE = PAGES ? "/tessera/" : "/";
+const BASE = PAGES ? "/freedaw/" : "/";
 
 export default defineConfig({
   testDir: "e2e",

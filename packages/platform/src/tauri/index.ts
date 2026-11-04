@@ -10,8 +10,8 @@ import type {
   SourceInfo,
   TakeProgress,
   TuneAnalysis,
-} from "@tessera/schema";
-import type { RecordedTake as NativeTake } from "@tessera/schema";
+} from "@freedaw/schema";
+import type { RecordedTake as NativeTake } from "@freedaw/schema";
 import type {
   AudioPlatform,
   AudioSettings,
@@ -75,7 +75,7 @@ export class TauriPlatform implements AudioPlatform {
       this.pending.push(() => this.send(command));
       return;
     }
-    invoke("audio_send", { command }).catch((e: unknown) => console.error("tessera: audio_send failed", e));
+    invoke("audio_send", { command }).catch((e: unknown) => console.error("freedaw: audio_send failed", e));
   }
 
   setAutomation(lane: number, track: number, target: AutomationTarget, points: [number, number][]): void {
@@ -84,7 +84,7 @@ export class TauriPlatform implements AudioPlatform {
       return;
     }
     invoke("audio_automation", { lane, track, ...target, points }).catch((e: unknown) =>
-      console.error("tessera: audio_automation failed", e),
+      console.error("freedaw: audio_automation failed", e),
     );
   }
 

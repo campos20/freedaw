@@ -1,4 +1,4 @@
-import type { Clip, Peaks, Track } from "@tessera/schema";
+import type { Clip, Peaks, Track } from "@freedaw/schema";
 import { CLIP_HEADER } from "./hitTest";
 import { frameToX, type GridLine, type View } from "./timeScale";
 import { levelFor, pyramidFor } from "./waveform";

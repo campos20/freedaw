@@ -56,7 +56,7 @@ export function TransportBar({
         <span className="logo" aria-hidden>
           ▦
         </span>
-        <span className="app-name">Tessera</span>
+        <span className="app-name">FreeDAW</span>
         <ProjectMenu />
       </div>
 

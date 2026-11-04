@@ -1,4 +1,4 @@
-//! Tessera project model, shared by both editions.
+//! FreeDAW project model, shared by both editions.
 //!
 //! A project is saved as `project.json` next to its audio files. Every saved document carries
 //! `schemaVersion`; [`load`] migrates older documents forward before deserializing, so old
@@ -225,7 +225,7 @@ pub struct Source {
 pub enum ProjectError {
     /// Not JSON, or not shaped like a project after migration.
     Invalid(String),
-    /// Saved by a newer Tessera than this one.
+    /// Saved by a newer FreeDAW than this one.
     TooNew { version: u32 },
     /// Well-formed but internally inconsistent (see [`Project::validate`]).
     Inconsistent(Vec<String>),
@@ -237,7 +237,7 @@ impl std::fmt::Display for ProjectError {
             ProjectError::Invalid(e) => write!(f, "invalid project file: {e}"),
             ProjectError::TooNew { version } => write!(
                 f,
-                "this project was saved by a newer version of Tessera (schema {version}, this version reads up to {SCHEMA_VERSION})"
+                "this project was saved by a newer version of FreeDAW (schema {version}, this version reads up to {SCHEMA_VERSION})"
             ),
             ProjectError::Inconsistent(issues) => {
                 write!(f, "the project file is inconsistent: {}", issues.join("; "))

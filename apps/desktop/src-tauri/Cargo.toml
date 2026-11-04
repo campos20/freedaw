@@ -1,6 +1,6 @@
 [package]
-name = "tessera-desktop"
-description = "Tessera desktop edition (Tauri v2 shell around engine-native)."
+name = "freedaw-desktop"
+description = "FreeDAW desktop edition (Tauri v2 shell around engine-native)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

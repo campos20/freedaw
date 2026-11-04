@@ -1,5 +1,5 @@
 //! WASM module for the web edition's worker: audio decoding (`media`), project loading with
-//! migrations and `.tessera` archives (`project`).
+//! migrations and `.freedaw` archives (`project`).
 //!
 //! Raw C ABI with no imports (like `engine-wasm`). Inputs are copied into memory from
 //! [`worker_alloc`] and their ownership passes to the called function. Decoding returns an
@@ -220,7 +220,7 @@ pub unsafe extern "C" fn project_load(data: *mut u8, len: usize) -> *mut BytesRe
     )
 }
 
-/// Builds a `.tessera` archive from framed entries: repeated
+/// Builds a `.freedaw` archive from framed entries: repeated
 /// `[u32 name length][name][u32 data length][data]`, little-endian.
 ///
 /// # Safety
@@ -235,7 +235,7 @@ pub unsafe extern "C" fn archive_pack(data: *mut u8, len: usize) -> *mut BytesRe
     )
 }
 
-/// Reads a `.tessera` archive and returns its entries framed as for [`archive_pack`].
+/// Reads a `.freedaw` archive and returns its entries framed as for [`archive_pack`].
 ///
 /// # Safety
 /// `data`/`len` must come from [`worker_alloc`] (ownership is taken).
@@ -547,7 +547,7 @@ mod tests {
             assert!(
                 call(archive_unpack, b"garbage")
                     .unwrap_err()
-                    .contains("not a .tessera archive")
+                    .contains("not a .freedaw archive")
             );
             assert!(
                 call(archive_pack, &frame(&[("../x".into(), vec![])]))

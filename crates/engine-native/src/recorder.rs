@@ -92,7 +92,7 @@ impl TakeRecorder {
         let (progress_tx, progress) = mpsc::channel();
         let thread_stop = stop.clone();
         let thread = std::thread::Builder::new()
-            .name("tessera-recorder".into())
+            .name("freedaw-recorder".into())
             .spawn(move || {
                 run(
                     capture,
@@ -340,7 +340,7 @@ mod tests {
 
     #[test]
     fn writes_contiguous_runs_as_separate_wav_takes() {
-        let dir = std::env::temp_dir().join(format!("tessera-recorder-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("freedaw-recorder-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         let (mut engine, mut ctl) = Engine::new(48_000.0);
         let capture = ctl.take_capture().unwrap();

@@ -1,4 +1,4 @@
-import type { LaneTarget, Track } from "@tessera/schema";
+import type { LaneTarget, Track } from "@freedaw/schema";
 import { type ChangeEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { Meter, type MeterReading } from "../Meter";
 import { TRACK_COLORS } from "../model/colors";

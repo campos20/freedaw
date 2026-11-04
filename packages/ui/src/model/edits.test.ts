@@ -1,4 +1,4 @@
-import type { Project } from "@tessera/schema";
+import type { Project } from "@freedaw/schema";
 import { produce } from "immer";
 import { describe, expect, it } from "vitest";
 import {

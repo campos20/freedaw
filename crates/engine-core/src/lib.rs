@@ -1,4 +1,4 @@
-//! Platform-agnostic Tessera audio engine.
+//! Platform-agnostic FreeDAW audio engine.
 //!
 //! Everything here compiles to both `wasm32-unknown-unknown` and native targets. This crate
 //! performs no I/O and spawns no threads: platform layers (`engine-wasm`, `engine-native`)

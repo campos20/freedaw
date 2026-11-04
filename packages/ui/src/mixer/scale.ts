@@ -1,4 +1,4 @@
-import type { ParamInfo } from "@tessera/schema";
+import type { ParamInfo } from "@freedaw/schema";
 
 /** Fader travel: position 0…1 ↔ gain. 0 is silence, ~0.6 is unity, 1 is +12 dB. */
 const TOP_DB = 12;

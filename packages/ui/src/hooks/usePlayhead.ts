@@ -1,4 +1,4 @@
-import type { LoopRegion } from "@tessera/schema";
+import type { LoopRegion } from "@freedaw/schema";
 import { useEffect, useRef } from "react";
 import { useSession } from "../state/hooks";
 

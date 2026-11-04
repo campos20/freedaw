@@ -1,4 +1,4 @@
-import type { Project } from "@tessera/schema";
+import type { Project } from "@freedaw/schema";
 import type { ProjectStorage, ProjectSummary } from "../index";
 import type { WorkerClient } from "./workerClient";
 
@@ -80,7 +80,7 @@ export class OpfsStorage implements ProjectStorage {
     );
     download(
       new Blob([zip as Uint8Array<ArrayBuffer>], { type: "application/zip" }),
-      `${safeName(project.name ?? "project")}.tessera`,
+      `${safeName(project.name ?? "project")}.freedaw`,
     );
     return true;
   }
@@ -89,7 +89,7 @@ export class OpfsStorage implements ProjectStorage {
     const bytes = await file.arrayBuffer();
     const entries = await this.worker.call({ kind: "unpack", bytes }, [bytes]);
     const projectEntry = entries.find(([path]) => path === PROJECT_FILE);
-    if (!projectEntry) throw new Error("This .tessera file has no project.json.");
+    if (!projectEntry) throw new Error("This .freedaw file has no project.json.");
     const json = await this.worker.call({
       kind: "loadProject",
       json: new TextDecoder().decode(projectEntry[1]),

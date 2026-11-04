@@ -5,7 +5,7 @@ import {
   type LaneTarget,
   type Project,
   type Track,
-} from "@tessera/schema";
+} from "@freedaw/schema";
 import {
   type DragEvent,
   type PointerEvent,

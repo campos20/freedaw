@@ -1,5 +1,5 @@
-import type { AutomationTarget } from "@tessera/platform";
-import { type Command, DEVICES, MASTER_TRACK } from "@tessera/schema";
+import type { AutomationTarget } from "@freedaw/platform";
+import { type Command, DEVICES, MASTER_TRACK } from "@freedaw/schema";
 import { produce } from "immer";
 import { describe, expect, it } from "vitest";
 import {

@@ -1,4 +1,4 @@
-import type { TimeSignature } from "@tessera/schema";
+import type { TimeSignature } from "@freedaw/schema";
 
 /** Horizontal view of the timeline. Positions are project frames. */
 export interface View {

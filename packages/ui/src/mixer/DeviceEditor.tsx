@@ -1,4 +1,4 @@
-import { DEVICES, type Device, type DeviceKind, type ParamInfo } from "@tessera/schema";
+import { DEVICES, type Device, type DeviceKind, type ParamInfo } from "@freedaw/schema";
 import { type PointerEvent, useRef } from "react";
 import { useCanvas } from "../hooks/useCanvas";
 import {
@@ -91,7 +91,7 @@ export function DeviceEditor({ deviceId, onClose }: { deviceId: number; onClose:
         </button>
       </header>
       {!info ? (
-        <p className="device-note">This device comes from a newer version of Tessera and is bypassed.</p>
+        <p className="device-note">This device comes from a newer version of FreeDAW and is bypassed.</p>
       ) : device.kind === "eq" ? (
         <EqEditor device={device} onAutomate={track ? automate : undefined} />
       ) : (

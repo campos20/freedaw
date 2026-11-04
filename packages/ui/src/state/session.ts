@@ -4,8 +4,8 @@ import type {
   EngineInfo,
   ProjectSummary,
   RecordedTake,
-} from "@tessera/platform";
-import type { Peaks, Project, SourceInfo, TakeProgress, TuneAnalysis } from "@tessera/schema";
+} from "@freedaw/platform";
+import type { Peaks, Project, SourceInfo, TakeProgress, TuneAnalysis } from "@freedaw/schema";
 import { isEdited } from "../tune/model";
 import { createStore } from "zustand/vanilla";
 import type { MeterReading } from "../Meter";
@@ -77,9 +77,15 @@ export interface SessionUiState {
   projects: ProjectSummary[];
 }
 
-const LAST_PROJECT_KEY = "tessera.lastProject";
-const SETTINGS_KEY = "tessera.audioSettings";
-const LATENCY_KEY = "tessera.latency";
+const LAST_PROJECT_KEY = "freedaw.lastProject";
+const SETTINGS_KEY = "freedaw.audioSettings";
+const LATENCY_KEY = "freedaw.latency";
+/** Keys written before the project was renamed from Tessera, and what they became. */
+const LEGACY_KEYS: readonly (readonly [string, string])[] = [
+  ["tessera.lastProject", LAST_PROJECT_KEY],
+  ["tessera.audioSettings", SETTINGS_KEY],
+  ["tessera.latency", LATENCY_KEY],
+];
 /** Calibration: metronome tempo, recording length, and the engine id of the temporary track. */
 const CALIBRATION_BPM = 120;
 const CALIBRATION_SECONDS = 3;
@@ -838,7 +844,7 @@ export class Session {
     this.store.getState().setPeaks(sourceId, peaks);
   }
 
-  private onEngineEvent(event: import("@tessera/schema").Event) {
+  private onEngineEvent(event: import("@freedaw/schema").Event) {
     switch (event.type) {
       case "Transport": {
         const position = this.sync.toProject(event.position, this.project);
@@ -976,10 +982,27 @@ function loadJson<T>(key: string): T | undefined {
   }
 }
 
+let legacyKeysAdopted = false;
+
 function safeLocalStorage(): Storage | undefined {
   try {
-    return globalThis.localStorage;
+    const storage = globalThis.localStorage;
+    if (storage && !legacyKeysAdopted) {
+      legacyKeysAdopted = true;
+      adoptLegacyKeys(storage);
+    }
+    return storage;
   } catch {
     return undefined;
+  }
+}
+
+/** Moves settings saved under the old key names. A value under a new key is never replaced. */
+export function adoptLegacyKeys(storage: Pick<Storage, "getItem" | "setItem" | "removeItem">): void {
+  for (const [legacy, current] of LEGACY_KEYS) {
+    const value = storage.getItem(legacy);
+    if (value === null) continue;
+    if (storage.getItem(current) === null) storage.setItem(current, value);
+    storage.removeItem(legacy);
   }
 }

@@ -1,4 +1,4 @@
-//! Desktop audio I/O for Tessera.
+//! Desktop audio I/O for FreeDAW.
 //!
 //! Owns the cpal streams and drives [`engine_core::Engine`] from the output callback, with
 //! the input stream bridged in through a lock-free ring. All DSP lives in `engine-core`; this

@@ -1,4 +1,4 @@
-# Tessera
+# FreeDAW
 
 A free DAW with graphical, note-level pitch and timing editing ("Tune"), in the spirit of existing
 pitch-alignment software. It is built from one codebase in two editions:
@@ -23,7 +23,7 @@ recording (M3, pending hardware checks), the arrange view and projects.
 - **Record:** arm a track (●), choose its input in the track's ⋯ menu, then press Record (R).
   The ▾ next to Record sets the count-in and punch (record only inside the loop region). Takes
   become clips, compensated for the round-trip latency.
-- **Tune:** double-click an audio clip to open it in the Tune editor (bottom pane). Tessera
+- **Tune:** double-click an audio clip to open it in the Tune editor (bottom pane). FreeDAW
   detects its notes, key and tempo. Drag notes up or down to change pitch (snaps to semitones;
   hold Alt for free pitch), sideways to move them, and drag their edges to stretch. Double-click
   splits a note. Box-select or Shift-click to select several. The side panel holds the scale,
@@ -39,11 +39,12 @@ recording (M3, pending hardware checks), the arrange view and projects.
   or an effect parameter (or use the **A** button next to a parameter). Click to add points,
   drag them, double-click or Alt-click to delete.
 - **Devices and latency:** ⚙ opens the audio settings. Calibrate with a cable from an output to
-  an input: Tessera plays its metronome, records it back and measures the delay. On desktop,
+  an input: FreeDAW plays its metronome, records it back and measures the delay. On desktop,
   `cargo run --release -p engine-native --example soak -- --buffer 128 --minutes 10 --input default`
   checks for dropouts.
 - **Projects** save automatically. The project name menu (top left) creates, renames, opens,
-  deletes, exports and imports projects (`.tessera` files carry the project and its audio).
+  deletes, exports and imports projects (`.freedaw` files carry the project and its audio; `.tessera`
+  files from before the rename still import).
 
 | Shortcut                         | Action                                                       |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -92,7 +93,7 @@ Optional desktop audio hosts are Cargo features of `engine-native`, forwarded by
 - `asio` (Windows): needs the ASIO SDK (`CPAL_ASIO_DIR`) and LLVM/clang at build time.
 - `jack` (Linux): JACK, including PipeWire through its JACK layer.
 
-For example: `pnpm --filter @tessera/desktop tauri dev --features asio`.
+For example: `pnpm --filter @freedaw/desktop tauri dev --features asio`.
 
 ## Layout
 
@@ -103,7 +104,7 @@ crates/engine-native   cpal input/output, device settings, take recorder, file i
 crates/media           decoding (WAV, FLAC, MP3, OGG Vorbis, AAC/M4A), resampling, waveform peaks
 crates/worker-wasm     raw C-ABI WASM for the web worker: decoding, project loading, archives
 crates/tune            Tune DSP: pitch analysis, notes, key/tempo, PSOLA rendering, render plans
-crates/project         project model, schema versions and migrations, .tessera archives
+crates/project         project model, schema versions and migrations, .freedaw archives
 crates/plugin-host     VST3/CLAP hosting (M7)
 apps/web               Vite app using WebPlatform
 apps/desktop           Tauri v2 app using TauriPlatform (Rust backend in src-tauri/)
@@ -136,7 +137,7 @@ that adds them: on the first visit the page installs it and reloads once. Build 
 
 ## License
 
-Tessera is free software, licensed under the **GNU General Public License v3.0 or later**. See
+FreeDAW is free software, licensed under the **GNU General Public License v3.0 or later**. See
 [LICENSE](LICENSE).
 
 GPLv3 is required for the desktop edition's ASIO support: Steinberg's ASIO SDK is available under

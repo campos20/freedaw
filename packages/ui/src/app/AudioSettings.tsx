@@ -1,5 +1,5 @@
-import type { AudioSettings as Settings, Diagnostics } from "@tessera/platform";
-import type { AudioDeviceList } from "@tessera/schema";
+import type { AudioSettings as Settings, Diagnostics } from "@freedaw/platform";
+import type { AudioDeviceList } from "@freedaw/schema";
 import { type ReactNode, useEffect, useState } from "react";
 import { useRecording, useSession, useSessionUi } from "../state/hooks";
 

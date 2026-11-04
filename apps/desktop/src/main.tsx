@@ -1,5 +1,5 @@
-import { TauriPlatform } from "@tessera/platform/tauri";
-import { App } from "@tessera/ui";
+import { TauriPlatform } from "@freedaw/platform/tauri";
+import { App } from "@freedaw/ui";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 

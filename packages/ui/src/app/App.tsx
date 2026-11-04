@@ -1,4 +1,4 @@
-import type { AudioPlatform } from "@tessera/platform";
+import type { AudioPlatform } from "@freedaw/platform";
 import { useEffect, useState } from "react";
 import { Arrange, HEADER_WIDTH } from "../arrange/Arrange";
 import { type View, zoomAround } from "../arrange/timeScale";
@@ -22,7 +22,7 @@ import { Mixer } from "../mixer/Mixer";
 import "../theme.css";
 import "./App.css";
 
-/** The Tessera DAW. Creates the session for `platform` and opens the last project. */
+/** The FreeDAW DAW. Creates the session for `platform` and opens the last project. */
 export function App({ platform }: { platform: AudioPlatform }) {
   const [session] = useState(() => new Session(platform));
   useEffect(() => {

@@ -124,7 +124,7 @@ export function loadProjectJson(m: WorkerExports, json: string): string {
 
 export type ArchiveEntry = [path: string, data: Uint8Array];
 
-/** Builds a `.tessera` archive. */
+/** Builds a `.freedaw` archive. */
 export function packArchive(m: WorkerExports, entries: ArchiveEntry[]): Uint8Array {
   const encoder = new TextEncoder();
   const names = entries.map(([name]) => encoder.encode(name));
@@ -144,7 +144,7 @@ export function packArchive(m: WorkerExports, entries: ArchiveEntry[]): Uint8Arr
   return callBytes(m, m.archive_pack, framed);
 }
 
-/** Reads a `.tessera` archive. Paths are validated by the Rust side. */
+/** Reads a `.freedaw` archive. Paths are validated by the Rust side. */
 export function unpackArchive(m: WorkerExports, bytes: Uint8Array): ArchiveEntry[] {
   const framed = callBytes(m, m.archive_unpack, bytes);
   const view = new DataView(framed.buffer);

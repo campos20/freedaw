@@ -99,7 +99,7 @@ impl AudioIo {
         let (ready_tx, ready_rx) = mpsc::sync_channel(1);
         let (shutdown_tx, shutdown_rx) = mpsc::channel::<()>();
         let thread = std::thread::Builder::new()
-            .name("tessera-audio".into())
+            .name("freedaw-audio".into())
             .spawn(move || match open_streams(&config, thread_xruns) {
                 Ok((streams, controller, info)) => {
                     let _ = ready_tx.send(Ok((controller, info)));
@@ -419,7 +419,7 @@ fn error_callback(xruns: Arc<AtomicU32>) -> impl FnMut(cpal::Error) + Send + 'st
         if err.kind() == cpal::ErrorKind::Xrun {
             xruns.fetch_add(1, Ordering::Relaxed);
         } else {
-            eprintln!("tessera-audio: stream error: {err}");
+            eprintln!("freedaw-audio: stream error: {err}");
         }
     }
 }

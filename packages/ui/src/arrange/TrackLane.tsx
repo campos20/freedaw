@@ -1,4 +1,4 @@
-import type { Peaks, Track } from "@tessera/schema";
+import type { Peaks, Track } from "@freedaw/schema";
 import { type MouseEventHandler, type PointerEventHandler, useRef } from "react";
 import { useCanvas } from "../hooks/useCanvas";
 import type { LiveTake } from "../state/session";

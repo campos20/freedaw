@@ -1,4 +1,4 @@
-import type { AudioPlatform, AutomationTarget, TunePlan } from "@tessera/platform";
+import type { AudioPlatform, AutomationTarget, TunePlan } from "@freedaw/platform";
 import {
   type Clip,
   type Command,
@@ -10,7 +10,7 @@ import {
   MAX_SENDS,
   type Project,
   type Track,
-} from "@tessera/schema";
+} from "@freedaw/schema";
 
 /** Crossfade where a tuned clip's segments meet (must match `tune::CROSSFADE`). */
 const TUNE_CROSSFADE_SECONDS = 0.01;
