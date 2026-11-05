@@ -4,6 +4,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Called by release.yml after the version commit, which (pushed with GITHUB_TOKEN) doesn't
+  # trigger this workflow by itself.
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit to deploy
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -20,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - id: pages
         uses: actions/configure-pages@v5

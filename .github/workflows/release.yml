@@ -1,0 +1,179 @@
+name: Release
+
+# Run from the Actions tab (Release → Run workflow) on main. It:
+#   1. sets the new version everywhere (scripts/set-version.mjs), commits it to main and tags it
+#      v<version>;
+#   2. builds the desktop installers on macOS (universal .dmg/.app), Windows (.msi, .exe) and
+#      Linux (.deb, .rpm, .AppImage) and attaches them to a GitHub release;
+#   3. redeploys the web edition so it shows the new version.
+#
+# Pushes made with GITHUB_TOKEN don't trigger other workflows, so CI and Pages don't run on their
+# own for the version commit; this workflow calls the Pages deployment itself.
+#
+# Installers are unsigned for now (signing is planned for M8): macOS and Windows warn before
+# opening them.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Which part of the version to increase
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      version:
+        description: Exact version instead (e.g. 1.0.0 or 1.0.0-rc.1); overrides the bump
+        type: string
+        required: false
+      draft:
+        description: Leave the release as a draft to review and publish by hand
+        type: boolean
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  version:
+    name: Set version
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.set.outputs.version }}
+      tag: v${{ steps.set.outputs.version }}
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Rust toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - id: set
+        name: Set the new version
+        run: node scripts/set-version.mjs "${INPUT_VERSION:-$INPUT_BUMP}"
+        env:
+          INPUT_BUMP: ${{ inputs.bump }}
+          INPUT_VERSION: ${{ inputs.version }}
+
+      - id: commit
+        name: Commit and tag
+        run: |
+          tag="v${{ steps.set.outputs.version }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "::error::Tag $tag already exists"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Release $tag"
+          git tag "$tag"
+          git push --atomic origin HEAD:main "refs/tags/$tag"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  installers:
+    name: Installers (${{ matrix.name }})
+    needs: version
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+            args: --target universal-apple-darwin
+          - name: Windows
+            os: windows-latest
+            args: ""
+          # The oldest supported Ubuntu, so the .deb and AppImage run on older glibc versions.
+          - name: Linux
+            os: ubuntu-22.04
+            args: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.version.outputs.tag }}
+
+      - name: Linux system dependencies (Tauri, ALSA)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libasound2-dev
+
+      - name: Rust toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - name: macOS targets (universal binary)
+        if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Creates the release on the first job to get here; the others add their installers to it.
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tauriScript: pnpm tauri
+          args: ${{ matrix.args }}
+          tagName: ${{ needs.version.outputs.tag }}
+          releaseName: FreeDAW ${{ needs.version.outputs.tag }}
+          releaseBody: |
+            The web edition is at https://campos20.github.io/freedaw/.
+
+            The desktop installers are not signed yet. On macOS, right-click the app and choose
+            **Open** the first time; on Windows, choose **More info → Run anyway**.
+          releaseDraft: true
+          prerelease: ${{ contains(needs.version.outputs.version, '-') }}
+
+  publish:
+    name: Publish release
+    needs: [version, installers]
+    if: ${{ !inputs.draft }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish with generated notes
+        run: |
+          notes="$(gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" -f tag_name="$TAG" --jq .body)"
+          body="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)"
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --notes "$body
+
+          $notes"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.version.outputs.tag }}
+
+  pages:
+    name: Deploy web edition
+    needs: version
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
+    with:
+      ref: ${{ needs.version.outputs.sha }}
