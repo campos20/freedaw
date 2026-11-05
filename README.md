@@ -2,6 +2,14 @@
 
 [![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/campos20)
 
+[![CI](https://img.shields.io/github/actions/workflow/status/campos20/freedaw/ci.yml?branch=main&label=CI)](https://github.com/campos20/freedaw/actions/workflows/ci.yml)
+[![Pages](https://img.shields.io/github/actions/workflow/status/campos20/freedaw/pages.yml?branch=main&label=pages)](https://campos20.github.io/freedaw/)
+[![Release](https://img.shields.io/github/v/release/campos20/freedaw?include_prereleases&sort=semver&label=release)](https://github.com/campos20/freedaw/releases/latest)
+[![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Web%20%7C%20Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](https://campos20.github.io/freedaw/)
+[![Rust](https://img.shields.io/badge/Rust-1.88%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-v2-24C8DB?logo=tauri&logoColor=white)](https://v2.tauri.app/)
+
 A free DAW with graphical, note-level pitch and timing editing ("Tune"), in the spirit of existing
 pitch-alignment software. It is built from one codebase in two editions:
 

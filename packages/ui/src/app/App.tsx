@@ -24,7 +24,16 @@ import "../theme.css";
 import "./App.css";
 
 /** The FreeDAW DAW. Creates the session for `platform` and opens the last project. */
-export function App({ platform, version }: { platform: AudioPlatform; version: string }) {
+export function App({
+  platform,
+  version,
+  onOpenAbout,
+}: {
+  platform: AudioPlatform;
+  version: string;
+  /** Subscribes to requests from outside the UI (e.g. a native menu) to show About. */
+  onOpenAbout?: (open: () => void) => () => void;
+}) {
   const [session] = useState(() => new Session(platform));
   useEffect(() => {
     void session.init();
@@ -36,17 +45,24 @@ export function App({ platform, version }: { platform: AudioPlatform; version: s
 
   return (
     <SessionContext.Provider value={session}>
-      <Workspace version={version} />
+      <Workspace version={version} onOpenAbout={onOpenAbout} />
     </SessionContext.Provider>
   );
 }
 
-function Workspace({ version }: { version: string }) {
+function Workspace({
+  version,
+  onOpenAbout,
+}: {
+  version: string;
+  onOpenAbout?: (open: () => void) => () => void;
+}) {
   const session = useSession();
   const [view, setView] = useState<View>({ framesPerPx: 1200, scrollFrames: 0 });
   const [snap, setSnap] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  useEffect(() => onOpenAbout?.(() => setAboutOpen(true)), [onOpenAbout]);
   const [mixer, setMixer] = useState(false);
   const tuning = useTune((s) => s.editing !== undefined);
   const toggleMixer = () => {

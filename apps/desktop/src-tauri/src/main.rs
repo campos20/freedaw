@@ -27,6 +27,27 @@ const ENGINE_EVENTS: &str = "engine-events";
 const RECORDING_PROGRESS: &str = "recording-progress";
 const AUDIO_XRUNS: &str = "audio-xruns";
 const EVENT_POLL_INTERVAL: Duration = Duration::from_millis(33);
+/// Asks the UI to show its About dialog; must match packages/platform/src/tauri.
+const OPEN_ABOUT: &str = "open-about";
+const ABOUT_MENU_ID: &str = "about";
+
+/// The default macOS menu, with its "About" item opening the app's own About dialog (version,
+/// repository, update check) instead of the native panel, which can't show a link.
+#[cfg(target_os = "macos")]
+fn app_menu(app: &AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
+    use tauri::menu::{Menu, MenuItem};
+    let menu = Menu::default(app)?;
+    if let Some(app_submenu) = menu
+        .items()?
+        .first()
+        .and_then(|item| item.as_submenu().cloned())
+    {
+        app_submenu.remove_at(0)?;
+        let about = MenuItem::with_id(app, ABOUT_MENU_ID, "About FreeDAW", true, None::<&str>)?;
+        app_submenu.insert(&about, 0)?;
+    }
+    Ok(menu)
+}
 
 /// The running audio streams and the settings they were opened with. The mutexes are only
 /// ever taken by UI-side threads; the audio thread talks to the engine through engine-core's
@@ -343,7 +364,14 @@ fn main() {
                 eprintln!("could not move projects from the previous app data folder: {e}");
             }
             spawn_event_forwarder(app.handle().clone());
+            #[cfg(target_os = "macos")]
+            app.set_menu(app_menu(app.handle())?)?;
             Ok(())
+        })
+        .on_menu_event(|app, event| {
+            if event.id() == ABOUT_MENU_ID {
+                let _ = app.emit(OPEN_ABOUT, ());
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running FreeDAW");
