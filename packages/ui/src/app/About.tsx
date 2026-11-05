@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "../state/hooks";
-import { checkForUpdate, RELEASES_URL, REPO_URL, SPONSOR_URL, type UpdateStatus } from "./updates";
+import {
+  checkForUpdate,
+  PRIVACY_URL,
+  RELEASES_URL,
+  REPO_URL,
+  SPONSOR_URL,
+  TERMS_URL,
+  type UpdateStatus,
+} from "./updates";
 
 type Check = { kind: "checking" } | { kind: "failed" } | UpdateStatus;
 
@@ -83,6 +91,18 @@ export function About({ version, onClose }: { version: string; onClose: () => vo
         <div className="field-row">
           <span>License</span>
           <span>GPL-3.0-or-later</span>
+        </div>
+        <div className="field-row">
+          <span>Legal</span>
+          <span>
+            <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
+              Privacy Policy
+            </a>
+            {" · "}
+            <a href={TERMS_URL} target="_blank" rel="noreferrer">
+              Terms of Use
+            </a>
+          </span>
         </div>
       </div>
     </div>

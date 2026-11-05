@@ -304,6 +304,14 @@ test("about shows the version, the repository and the update status", async ({ p
     "href",
     "https://github.com/sponsors/campos20",
   );
+  await expect(about.getByRole("link", { name: "Privacy Policy" })).toHaveAttribute(
+    "href",
+    "https://campos20.github.io/freedaw/privacy-policy.html",
+  );
+  await expect(about.getByRole("link", { name: "Terms of Use" })).toHaveAttribute(
+    "href",
+    "https://campos20.github.io/freedaw/terms-of-use.html",
+  );
   // The answer depends on GitHub, but the check must always settle.
   await expect(about.getByTestId("update-status")).not.toHaveText("Checking…");
   await page.keyboard.press("Escape");

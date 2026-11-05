@@ -165,3 +165,6 @@ FreeDAW is free software, licensed under the **GNU General Public License v3.0 o
 
 GPLv3 is required for the desktop edition's ASIO support: Steinberg's ASIO SDK is available under
 GPLv3 or a proprietary agreement. The VST3 SDK is MIT-licensed since v3.8.
+
+See also the [Privacy Policy](https://campos20.github.io/freedaw/privacy-policy.html) and the
+[Terms of Use](https://campos20.github.io/freedaw/terms-of-use.html) (sources in [docs/](docs/)).

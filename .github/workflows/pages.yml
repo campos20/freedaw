@@ -43,6 +43,20 @@ jobs:
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
 
+      # docs/ (privacy policy, terms of use) is served next to the app, at
+      # /<repo>/privacy-policy.html and /<repo>/terms-of-use.html; the app links to those URLs.
+      # Fail rather than silently replace a file of the web build with the same name.
+      - name: Add docs to the site
+        run: |
+          for file in docs/*; do
+            name="$(basename "$file")"
+            if [ -e "apps/web/dist/$name" ]; then
+              echo "::error::docs/$name collides with a file in the web build"
+              exit 1
+            fi
+            cp -R "$file" "apps/web/dist/$name"
+          done
+
       - uses: actions/upload-pages-artifact@v4
         with:
           path: apps/web/dist
