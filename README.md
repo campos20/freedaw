@@ -145,6 +145,24 @@ GitHub Pages can't send custom headers. Instead, `apps/web/public/coi-sw.js` is 
 that adds them: on the first visit the page installs it and reloads once. Build with
 `BASE_PATH=/<repo>/` for sub-path hosting; `pnpm e2e:pages` tests this setup locally.
 
+## Releasing
+
+Releases are made by the **Release** workflow: **Actions → Release → Run workflow** on `main`.
+Choose `patch`, `minor` or `major`, or type an exact version (`1.0.0`, `1.0.0-rc.1`). The workflow:
+
+1. sets the version everywhere (`scripts/set-version.mjs`: every `package.json`, the Cargo
+   workspace and `Cargo.lock`), commits `Release vX.Y.Z` to `main` and tags it `vX.Y.Z`;
+2. builds the desktop installers (macOS universal `.dmg`, Windows `.msi`/`.exe`, Linux
+   `.deb`/`.rpm`/`.AppImage`) and attaches them to a release (a pre-release if the version has a
+   `-` suffix);
+3. redeploys the web edition so its About dialog shows the new version.
+
+The release stays a draft by default so you can check the installers and edit the notes before
+publishing; untick **draft** to publish it right away, with generated notes. The About dialog's
+update check only sees published releases. Installers are not signed yet (planned for M8).
+
+To set the version locally instead: `node scripts/set-version.mjs minor`.
+
 ## Sponsor
 
 [![Sponsor via GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white&style=for-the-badge)](https://github.com/sponsors/campos20)

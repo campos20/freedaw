@@ -15,17 +15,17 @@ jack = ["engine-native/jack"]
 
 [dependencies]
 assert_no_alloc = "1.1.2"
-engine-core = { version = "0.1.0", path = "../../../crates/engine-core", features = ["serde"] }
-engine-native = { version = "0.1.0", path = "../../../crates/engine-native" }
-media = { version = "0.1.0", path = "../../../crates/media" }
-project = { version = "0.1.0", path = "../../../crates/project" }
+engine-core = { path = "../../../crates/engine-core", features = ["serde"] }
+engine-native = { path = "../../../crates/engine-native" }
+media = { path = "../../../crates/media" }
+project = { path = "../../../crates/project" }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 # Opens target="_blank" links in the default browser.
 tauri-plugin-opener = "2"
-tune = { version = "0.1.0", path = "../../../crates/tune" }
+tune = { path = "../../../crates/tune" }
 
 [lints]
 workspace = true

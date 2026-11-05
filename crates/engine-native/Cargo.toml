@@ -20,8 +20,8 @@ ts = ["dep:ts-rs", "engine-core/ts", "media/ts"]
 [dependencies]
 assert_no_alloc = "1.1.2"
 cpal = "0.18.2"
-engine-core = { version = "0.1.0", path = "../engine-core", features = ["serde"] }
-media = { version = "0.1.0", path = "../media" }
+engine-core = { path = "../engine-core", features = ["serde"] }
+media = { path = "../media" }
 rtrb = "0.4.1"
 serde = { version = "1.0.229", features = ["derive"] }
 ts-rs = { version = "12.0.1", optional = true }
