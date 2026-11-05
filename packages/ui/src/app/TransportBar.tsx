@@ -9,6 +9,7 @@ import "./TransportBar.css";
 
 export interface TransportBarProps {
   onOpenSettings: () => void;
+  onOpenAbout: () => void;
   snap: boolean;
   onToggleSnap: () => void;
   onZoom: (factor: number) => void;
@@ -21,6 +22,7 @@ export function TransportBar({
   onToggleSnap,
   onZoom,
   onOpenSettings,
+  onOpenAbout,
   mixer,
   onToggleMixer,
 }: TransportBarProps) {
@@ -156,6 +158,14 @@ export function TransportBar({
           title="Audio settings"
         >
           ⚙
+        </button>
+        <button
+          className="icon-button"
+          onClick={onOpenAbout}
+          aria-label="About FreeDAW"
+          title="About FreeDAW"
+        >
+          ⓘ
         </button>
         <button
           className={snap ? "icon-button toggle on" : "icon-button toggle"}

@@ -290,3 +290,18 @@ test("edits pitch in Tune, plays the result, undoes and survives a reload", asyn
   await page.getByRole("button", { name: "Pause" }).click();
   expect(errors).toEqual([]);
 });
+
+test("about shows the version, the repository and the update status", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: "About FreeDAW" }).click();
+  const about = page.getByRole("dialog", { name: "About FreeDAW" });
+  await expect(about.getByTestId("app-version")).toHaveText(/^\d+\.\d+\.\d+ \(Web\)$/);
+  await expect(about.getByRole("link", { name: /campos20\/freedaw/ })).toHaveAttribute(
+    "href",
+    "https://github.com/campos20/freedaw",
+  );
+  // The answer depends on GitHub, but the check must always settle.
+  await expect(about.getByTestId("update-status")).not.toHaveText("Checking…");
+  await page.keyboard.press("Escape");
+  await expect(about).toBeHidden();
+});

@@ -106,6 +106,10 @@
   color: var(--text-dim);
 }
 
+.dialog a {
+  color: var(--accent);
+}
+
 .dialog .note {
   color: var(--text-faint);
   font-size: 12px;
