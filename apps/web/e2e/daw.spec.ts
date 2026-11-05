@@ -300,6 +300,10 @@ test("about shows the version, the repository and the update status", async ({ p
     "href",
     "https://github.com/campos20/freedaw",
   );
+  await expect(about.getByRole("link", { name: "Sponsor FreeDAW" })).toHaveAttribute(
+    "href",
+    "https://github.com/sponsors/campos20",
+  );
   // The answer depends on GitHub, but the check must always settle.
   await expect(about.getByTestId("update-status")).not.toHaveText("Checking…");
   await page.keyboard.press("Escape");

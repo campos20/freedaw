@@ -1,4 +1,5 @@
 export const REPO_URL = "https://github.com/campos20/freedaw";
+export const SPONSOR_URL = "https://github.com/sponsors/campos20";
 export const RELEASES_URL = `${REPO_URL}/releases/latest`;
 const LATEST_RELEASE_API = "https://api.github.com/repos/campos20/freedaw/releases/latest";
 

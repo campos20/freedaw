@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "../state/hooks";
-import { checkForUpdate, RELEASES_URL, REPO_URL, type UpdateStatus } from "./updates";
+import { checkForUpdate, RELEASES_URL, REPO_URL, SPONSOR_URL, type UpdateStatus } from "./updates";
 
 type Check = { kind: "checking" } | { kind: "failed" } | UpdateStatus;
 
@@ -72,6 +72,12 @@ export function About({ version, onClose }: { version: string; onClose: () => vo
           <span>Source code</span>
           <a href={REPO_URL} target="_blank" rel="noreferrer">
             github.com/campos20/freedaw
+          </a>
+        </div>
+        <div className="field-row">
+          <span>Support</span>
+          <a href={SPONSOR_URL} target="_blank" rel="noreferrer">
+            Sponsor FreeDAW
           </a>
         </div>
         <div className="field-row">
