@@ -32,6 +32,13 @@ import { TauriStorage } from "./storage";
 const ENGINE_EVENTS = "engine-events";
 const RECORDING_PROGRESS = "recording-progress";
 const AUDIO_XRUNS = "audio-xruns";
+const OPEN_ABOUT = "open-about";
+
+/** Calls `open` when the app menu's "About FreeDAW" item is chosen (macOS). Returns an unsubscribe. */
+export function onOpenAbout(open: () => void): () => void {
+  const unlisten = listen(OPEN_ABOUT, open);
+  return () => void unlisten.then((stop) => stop());
+}
 
 /** Desktop edition: engine-native runs in the Tauri backend; this forwards over IPC. */
 export class TauriPlatform implements AudioPlatform {

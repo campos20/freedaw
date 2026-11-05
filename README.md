@@ -1,5 +1,15 @@
 # FreeDAW
 
+[![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/campos20)
+
+[![CI](https://img.shields.io/github/actions/workflow/status/campos20/freedaw/ci.yml?branch=main&label=CI)](https://github.com/campos20/freedaw/actions/workflows/ci.yml)
+[![Pages](https://img.shields.io/github/actions/workflow/status/campos20/freedaw/pages.yml?branch=main&label=pages)](https://campos20.github.io/freedaw/)
+[![Release](https://img.shields.io/github/v/release/campos20/freedaw?include_prereleases&sort=semver&label=release)](https://github.com/campos20/freedaw/releases/latest)
+[![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Web%20%7C%20Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](https://campos20.github.io/freedaw/)
+[![Rust](https://img.shields.io/badge/Rust-1.88%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-v2-24C8DB?logo=tauri&logoColor=white)](https://v2.tauri.app/)
+
 A free DAW with graphical, note-level pitch and timing editing ("Tune"), in the spirit of existing
 pitch-alignment software. It is built from one codebase in two editions:
 
@@ -135,6 +145,19 @@ GitHub Pages can't send custom headers. Instead, `apps/web/public/coi-sw.js` is 
 that adds them: on the first visit the page installs it and reloads once. Build with
 `BASE_PATH=/<repo>/` for sub-path hosting; `pnpm e2e:pages` tests this setup locally.
 
+## Sponsor
+
+[![Sponsor via GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white&style=for-the-badge)](https://github.com/sponsors/campos20)
+
+FreeDAW is free and GPL-licensed, and it stays that way. If it earns a place in your studio,
+sponsorship helps in one concrete way right now: **code-signing certificates**. They are what turn
+the desktop builds into signed installers that macOS and Windows open without security warnings.
+
+You can also sponsor from the **Sponsor** button at the top of the
+[repository page](https://github.com/campos20/freedaw).
+
+Not in a position to sponsor? Reporting a bug from a real session is worth a lot too.
+
 ## License
 
 FreeDAW is free software, licensed under the **GNU General Public License v3.0 or later**. See
@@ -142,3 +165,6 @@ FreeDAW is free software, licensed under the **GNU General Public License v3.0 o
 
 GPLv3 is required for the desktop edition's ASIO support: Steinberg's ASIO SDK is available under
 GPLv3 or a proprietary agreement. The VST3 SDK is MIT-licensed since v3.8.
+
+See also the [Privacy Policy](https://campos20.github.io/freedaw/privacy-policy.html) and the
+[Terms of Use](https://campos20.github.io/freedaw/terms-of-use.html) (sources in [docs/](docs/)).

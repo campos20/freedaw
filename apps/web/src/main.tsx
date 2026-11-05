@@ -2,6 +2,7 @@ import { WebPlatform } from "@freedaw/platform/web";
 import { App } from "@freedaw/ui";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { version } from "../package.json";
 
 declare global {
   interface Window {
@@ -14,7 +15,7 @@ function boot() {
   const platform = new WebPlatform();
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
-      <App platform={platform} />
+      <App platform={platform} version={version} />
     </StrictMode>,
   );
 }
