@@ -55,9 +55,12 @@ jobs:
       - name: Rust toolchain
         run: rustup show active-toolchain || rustup toolchain install
 
+      # Only node is needed here. setup-node would otherwise try to cache pnpm (from
+      # package.json's packageManager), which isn't installed in this job.
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          package-manager-cache: false
 
       - id: set
         name: Set the new version
