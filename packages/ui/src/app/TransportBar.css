@@ -1,7 +1,7 @@
 .transport-bar {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
   height: 52px;
   padding: 0 14px;
   background: var(--panel);

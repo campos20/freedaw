@@ -303,6 +303,25 @@ test("edits pitch in Tune, plays the result, undoes and survives a reload", asyn
   expect(errors).toEqual([]);
 });
 
+test("tap tempo sets the BPM and undoes in one step", async ({ page }) => {
+  await open(page);
+  const tempo = page.getByLabel("Tempo", { exact: true });
+  await expect(tempo).toHaveValue("120");
+  const tap = page.getByRole("button", { name: "Tap tempo" });
+  for (let i = 0; i < 5; i++) {
+    await tap.click();
+    await page.waitForTimeout(400);
+  }
+  // 400 ms between taps is 150 BPM, give or take the test's timing.
+  await expect.poll(async () => Number(await tempo.inputValue())).toBeGreaterThan(130);
+  expect(Number(await tempo.inputValue())).toBeLessThan(170);
+
+  // A pause ends the run; the whole run is one undo step.
+  await page.waitForTimeout(2100);
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(tempo).toHaveValue("120");
+});
+
 test("about shows the version, the repository and the update status", async ({ page }) => {
   await open(page);
   await page.getByRole("button", { name: "About FreeDAW" }).click();

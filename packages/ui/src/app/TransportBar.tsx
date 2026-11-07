@@ -43,6 +43,7 @@ export interface TransportBarProps {
   onZoom: (factor: number) => void;
   mixer: boolean;
   onToggleMixer: () => void;
+  onTapTempo: () => void;
 }
 
 export function TransportBar({
@@ -53,6 +54,7 @@ export function TransportBar({
   onOpenAbout,
   mixer,
   onToggleMixer,
+  onTapTempo,
 }: TransportBarProps) {
   const session = useSession();
   const t = useT();
@@ -176,6 +178,21 @@ export function TransportBar({
           />
           <span>{t("units.bpm")}</span>
         </label>
+        <button
+          className="icon-button tap"
+          onPointerDown={(e) => e.button === 0 && onTapTempo()}
+          onKeyDown={(e) => {
+            // Enter taps; keep it from also reaching the "return to start" shortcut.
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (!e.repeat) onTapTempo();
+          }}
+          aria-label={t("transport.tapTempo")}
+          title={t("transport.tapTempoTitle")}
+        >
+          {t("transport.tap")}
+        </button>
         <span className="field signature">
           {timeSignature.numerator}/{timeSignature.denominator}
         </span>

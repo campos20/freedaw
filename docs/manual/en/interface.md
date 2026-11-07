@@ -14,8 +14,10 @@
    - 🔁 **Loop** (L): repeat the loop region while playing.
 3. **Position display.** The playhead position in bars, beats and ticks (top) and in minutes and
    seconds (bottom).
-4. **Tempo and metronome.** Type a tempo in BPM (20 to 300) and press Enter. Next to it is the time
-   signature and the **Metronome** button (C), which plays a click while you play or record.
+4. **Tempo and metronome.** Type a tempo in BPM (20 to 300) and press Enter, or click **Tap** (or
+   press T) a few times along with the beat to set it by ear. The tempo follows your last few taps;
+   a two-second pause ends the run, and you can undo the whole run in one step. Next to it is the
+   time signature and the **Metronome** button (C), which plays a click while you play or record.
 5. **Edit tools**, from left to right. They act on the selection; a tool is greyed out when there's
    nothing for it to act on. See [Importing and editing audio](editing.md).
    - ↶ **Undo** (⌘/Ctrl + Z) and ↷ **Redo** (⇧ Shift + ⌘/Ctrl + Z)

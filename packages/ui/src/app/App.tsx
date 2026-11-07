@@ -16,6 +16,7 @@ import { formatNumber, initLocale, textOf, useT } from "../i18n";
 import { Meter } from "../Meter";
 import { About } from "./About";
 import { deleteSelection, duplicateSelection, splitAtPlayhead } from "./editCommands";
+import { TapTempo } from "./tapTempo";
 import { Settings } from "./Settings";
 import { StatusBar } from "./StatusBar";
 import { TransportBar } from "./TransportBar";
@@ -77,7 +78,10 @@ function Workspace({
       setMixer(true);
     } else setMixer((m) => !m);
   };
-  useShortcuts(setView, () => setSnap((s) => !s), toggleMixer);
+  const [tapper] = useState(() => new TapTempo(session.store));
+  useEffect(() => () => tapper.commit(), [tapper]);
+  const tap = () => tapper.tap();
+  useShortcuts(setView, () => setSnap((s) => !s), toggleMixer, tapper);
 
   return (
     <div className="app">
@@ -89,6 +93,7 @@ function Workspace({
         onZoom={(f) => setView((v) => zoomAround(v, f, 0))}
         mixer={mixer && !tuning}
         onToggleMixer={toggleMixer}
+        onTapTempo={tap}
       />
       <Arrange view={view} onView={setView} snap={snap} />
       <TuneEditor />
@@ -159,6 +164,7 @@ function useShortcuts(
   setView: (update: (v: View) => View) => void,
   toggleSnap: () => void,
   toggleMixer: () => void,
+  tapper: TapTempo,
 ) {
   const session = useSession();
   useEffect(() => {
@@ -192,6 +198,7 @@ function useShortcuts(
         else if (!mod && key === "c") s.edit("Metronome", (p) => void (p.metronome = !p.metronome));
         else if (!mod && key === "n") toggleSnap();
         else if (!mod && key === "x") toggleMixer();
+        else if (!mod && key === "t" && !e.repeat) tapper.tap(e.timeStamp);
         else if (key === "=" || key === "+") setView((v) => zoomAround(v, 1 / 1.5, playheadX(v)));
         else if (key === "-") setView((v) => zoomAround(v, 1.5, playheadX(v)));
         else return false;
@@ -203,7 +210,7 @@ function useShortcuts(
       Math.max(0, (session.transport.getState().position - v.scrollFrames) / v.framesPerPx);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [session, setView, toggleSnap, toggleMixer]);
+  }, [session, setView, toggleSnap, toggleMixer, tapper]);
 }
 
 export { HEADER_WIDTH };
