@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build:wasm": "node scripts/build-wasm.mjs",
+    "i18n:status": "node --experimental-strip-types scripts/i18n-status.mjs",
     "gen:schema": "cargo test -q -p engine-core -p engine-native -p media -p project -p tune --features engine-core/ts,engine-native/ts,media/ts,project/ts,tune/ts export",
     "dev:web": "pnpm build:wasm && pnpm --filter @freedaw/web dev",
     "dev:desktop": "pnpm --filter @freedaw/desktop tauri dev",

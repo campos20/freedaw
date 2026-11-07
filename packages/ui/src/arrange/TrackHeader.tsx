@@ -1,6 +1,8 @@
 import type { LaneTarget, Track } from "@freedaw/schema";
 import { type ChangeEvent, type PointerEvent, useEffect, useRef, useState } from "react";
+import { formatNumber, t, useT } from "../i18n";
 import { Meter, type MeterReading } from "../Meter";
+import { formatPan } from "../mixer/scale";
 import { TRACK_COLORS } from "../model/colors";
 
 export type TrackPatch = Partial<Pick<Track, "gain" | "pan" | "mute" | "solo" | "name" | "color">>;
@@ -38,6 +40,7 @@ const DRAG_THRESHOLD_PX = 6;
 
 export function TrackHeader(props: TrackHeaderProps) {
   const { track, height, meter, selected, armed, monitored, onChange, onSelect, onReorder } = props;
+  useT();
   const db = gainToDb(track.gain);
   const [editing, setEditing] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -81,8 +84,8 @@ export function TrackHeader(props: TrackHeaderProps) {
     >
       <button
         className="color-strip"
-        aria-label="Change track color"
-        title="Change color"
+        aria-label={t("track.changeColor")}
+        title={t("track.changeColorTitle")}
         onClick={() => {
           const next = TRACK_COLORS[(TRACK_COLORS.indexOf(track.color) + 1) % TRACK_COLORS.length]!;
           onChange({ color: next }, "once", "Change track color");
@@ -95,7 +98,7 @@ export function TrackHeader(props: TrackHeaderProps) {
               className="track-name-input"
               defaultValue={track.name}
               autoFocus
-              aria-label="Track name"
+              aria-label={t("track.name")}
               onFocus={(e) => e.target.select()}
               onBlur={(e) => {
                 setEditing(false);
@@ -110,22 +113,22 @@ export function TrackHeader(props: TrackHeaderProps) {
           ) : (
             <span
               className="track-name"
-              title={`${track.name} — double-click to rename`}
+              title={t("track.renameTitle", { name: track.name })}
               onDoubleClick={() => setEditing(true)}
             >
               {track.name}
             </span>
           )}
           {track.kind === "bus" ? (
-            <span className="bus-tag" title="Bus: mixes the tracks routed to it">
-              BUS
+            <span className="bus-tag" title={t("track.busTitle")}>
+              {t("track.busTag")}
             </span>
           ) : (
             <button
               className={armed ? "ms arm on" : "ms arm"}
               aria-pressed={armed}
-              aria-label="Arm for recording"
-              title="Arm for recording"
+              aria-label={t("track.arm")}
+              title={t("track.arm")}
               onClick={props.onArm}
             >
               ●
@@ -134,22 +137,22 @@ export function TrackHeader(props: TrackHeaderProps) {
           <button
             className={track.mute ? "ms mute on" : "ms mute"}
             aria-pressed={track.mute}
-            aria-label="Mute"
+            aria-label={t("track.mute")}
             onClick={() => onChange({ mute: !track.mute }, "once", "Mute")}
           >
-            M
+            {t("track.muteShort")}
           </button>
           <button
             className={track.solo ? "ms solo on" : "ms solo"}
             aria-pressed={track.solo}
-            aria-label="Solo"
+            aria-label={t("track.solo")}
             onClick={() => onChange({ solo: !track.solo }, "once", "Solo")}
           >
-            S
+            {t("track.soloShort")}
           </button>
           <button
             className="ms more"
-            aria-label="Track options"
+            aria-label={t("track.options")}
             aria-expanded={menu}
             onClick={() => setMenu(!menu)}
           >
@@ -178,8 +181,8 @@ export function TrackHeader(props: TrackHeaderProps) {
             step={0.5}
             value={db}
             {...slider("Volume", (v) => ({ gain: dbToGain(v) }))}
-            aria-label="Volume"
-            title={db <= MIN_DB ? "−∞ dB" : `${db.toFixed(1)} dB`}
+            aria-label={t("track.volume")}
+            title={t("units.dB", { value: db <= MIN_DB ? "−∞" : formatNumber(db, 1) })}
           />
           <input
             className="pan"
@@ -190,18 +193,12 @@ export function TrackHeader(props: TrackHeaderProps) {
             value={track.pan}
             {...slider("Pan", (v) => ({ pan: v }))}
             onDoubleClick={() => onChange({ pan: 0 }, "once", "Pan")}
-            aria-label="Pan"
-            title={
-              track.pan === 0
-                ? "C"
-                : track.pan < 0
-                  ? `L${Math.round(-track.pan * 100)}`
-                  : `R${Math.round(track.pan * 100)}`
-            }
+            aria-label={t("track.pan")}
+            title={formatPan(track.pan)}
           />
         </div>
         {armed || monitored ? (
-          <div className="input-meter" title="Input level">
+          <div className="input-meter" title={t("track.inputLevel")}>
             <Meter reading={props.inputMeter} testId={`input-meter-${track.id}`} />
           </div>
         ) : (
@@ -236,23 +233,24 @@ function TrackMenu(p: {
   // Offer at least two channels so the input can be chosen before the device is open.
   const channels = Math.max(2, p.inputChannels);
   const options: { label: string; channel: number; stereo: boolean }[] = [];
-  for (let c = 0; c < channels; c++) options.push({ label: `In ${c + 1}`, channel: c, stereo: false });
+  for (let c = 0; c < channels; c++)
+    options.push({ label: t("units.input", { n: c + 1 }), channel: c, stereo: false });
   for (let c = 0; c + 1 < channels; c += 2)
-    options.push({ label: `In ${c + 1}+${c + 2}`, channel: c, stereo: true });
+    options.push({ label: t("units.inputPair", { n: c + 1, m: c + 2 }), channel: c, stereo: true });
   return (
     <div className="track-menu" ref={ref} role="menu" onPointerDown={(e) => e.stopPropagation()}>
       <label>
-        Automation
+        {t("track.automation")}
         <select
           value=""
-          aria-label="Show automation"
+          aria-label={t("track.showAutomation")}
           onChange={(e) => {
             const target = p.automationTargets[Number(e.target.value)]?.target;
             if (target) p.onShowLane(target);
             p.onClose();
           }}
         >
-          <option value="">Show lane…</option>
+          <option value="">{t("track.showLane")}</option>
           {p.automationTargets.map((t, i) => (
             <option key={i} value={i}>
               {t.label}
@@ -263,10 +261,10 @@ function TrackMenu(p: {
       {p.track.kind === "audio" && (
         <>
           <label>
-            Input
+            {t("track.input")}
             <select
               value={`${p.track.inputChannel}:${p.track.inputStereo}`}
-              aria-label="Input"
+              aria-label={t("track.input")}
               onChange={(e) => {
                 const [channel, stereo] = e.target.value.split(":");
                 p.onInput(Number(channel), stereo === "true");
@@ -280,8 +278,13 @@ function TrackMenu(p: {
             </select>
           </label>
           <label>
-            <input type="checkbox" checked={p.monitored} onChange={p.onMonitor} aria-label="Monitor input" />
-            Monitor input
+            <input
+              type="checkbox"
+              checked={p.monitored}
+              onChange={p.onMonitor}
+              aria-label={t("track.monitor")}
+            />
+            {t("track.monitor")}
           </label>
         </>
       )}
@@ -292,7 +295,7 @@ function TrackMenu(p: {
           p.onDelete();
         }}
       >
-        Delete track
+        {t("track.delete")}
       </button>
     </div>
   );

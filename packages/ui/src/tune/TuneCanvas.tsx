@@ -1,6 +1,7 @@
 import type { Key, Note, TuneAnalysis } from "@freedaw/schema";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { useCanvas } from "../hooks/useCanvas";
+import { useT } from "../i18n";
 import { frameOut, MIN_DURATION, noteCurves, noteName, scalePitchClasses, target } from "./model";
 
 /** Visible window: seconds at the left edge, pixels per second, top pitch, pixels per semitone. */
@@ -58,6 +59,8 @@ export function TuneCanvas(p: TuneCanvasProps) {
   const drag = useRef<Drag | null>(null);
   /** Box-selection rectangle while dragging one. */
   const [band, setBand] = useState<{ x0: number; y0: number; x1: number; y1: number }>();
+  const translate = useT();
+  const badge = translate(p.bypass ? "tune.badgeOriginal" : "tune.badgeTuned");
 
   useCanvas(
     canvas,
@@ -225,9 +228,9 @@ export function TuneCanvas(p: TuneCanvasProps) {
       ctx.fillRect(0, 0, KEYBOARD, RULER);
       ctx.fillStyle = p.bypass ? "#8fb4ff" : "#ff9f0a";
       ctx.font = "600 9.5px system-ui, sans-serif";
-      ctx.fillText(p.bypass ? "ORIG" : "TUNE", 8, 15);
+      ctx.fillText(badge, 8, 15);
     },
-    [p.notes, p.selected, view, p.playhead, p.grid, p.keySig, p.bypass, an, p.duration, band],
+    [p.notes, p.selected, view, p.playhead, p.grid, p.keySig, p.bypass, an, p.duration, band, badge],
   );
 
   // Pointer interaction --------------------------------------------------------------------

@@ -48,7 +48,9 @@ recording (M3, pending hardware checks), the arrange view and projects.
 - **Automation:** in a track's ⋯ menu, **Show automation** opens a lane for volume, pan, a send
   or an effect parameter (or use the **A** button next to a parameter). Click to add points,
   drag them, double-click or Alt-click to delete.
-- **Devices and latency:** ⚙ opens the audio settings. Calibrate with a cable from an output to
+- **Language:** the interface follows your browser or system language (English and Brazilian
+  Portuguese so far); change it in ⚙ Settings → Language.
+- **Devices and latency:** ⚙ opens the settings. Calibrate with a cable from an output to
   an input: FreeDAW plays its metronome, records it back and measures the delay. On desktop,
   `cargo run --release -p engine-native --example soak -- --buffer 128 --minutes 10 --input default`
   checks for dropouts.
@@ -95,6 +97,7 @@ pnpm install
 | `pnpm lint`              | ESLint + Prettier check                                                       |
 | `pnpm typecheck`         | `tsc` in every package                                                        |
 | `pnpm gen:schema`        | Regenerates `packages/schema/src/generated` from the Rust protocol types      |
+| `pnpm i18n:status`       | How complete each UI translation is (`pnpm i18n:status pt-BR` lists gaps)     |
 | `pnpm build:web`         | Production web build in `apps/web/dist`                                       |
 | `pnpm build:desktop`     | Desktop installers via `tauri build`                                          |
 
@@ -120,6 +123,7 @@ apps/web               Vite app using WebPlatform
 apps/desktop           Tauri v2 app using TauriPlatform (Rust backend in src-tauri/)
 packages/platform      AudioPlatform interface + WebPlatform + TauriPlatform
 packages/ui            shared React UI (arrange view, store, engine sync); talks only to AudioPlatform
+                       (translations in src/i18n)
 packages/schema        TS types generated from Rust (never hand-edit src/generated)
 ```
 
@@ -174,7 +178,8 @@ the desktop builds into signed installers that macOS and Windows open without se
 You can also sponsor from the **Sponsor** button at the top of the
 [repository page](https://github.com/campos20/freedaw).
 
-Not in a position to sponsor? Reporting a bug from a real session is worth a lot too.
+Not in a position to sponsor? Reporting a bug from a real session is worth a lot too, and so is
+[translating FreeDAW into your language](packages/ui/src/i18n/README.md).
 
 ## License
 

@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { getLocale, useT } from "../i18n";
 import { useProject, useSession, useSessionUi } from "../state/hooks";
 
 /** The project name button and its menu: new, rename, import/export, recent projects. */
 export function ProjectMenu() {
   const session = useSession();
+  const t = useT();
   const name = useProject((s) => s.project.name);
   const currentId = useProject((s) => s.project.id);
   const projects = useSessionUi((s) => s.projects);
@@ -40,10 +42,10 @@ export function ProjectMenu() {
       {open && (
         <div className="menu" role="menu">
           <label className="menu-field">
-            <span>Name</span>
+            <span>{t("project.name")}</span>
             <input
               defaultValue={name}
-              aria-label="Project name"
+              aria-label={t("project.nameLabel")}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   session.rename(e.currentTarget.value);
@@ -54,10 +56,10 @@ export function ProjectMenu() {
             />
           </label>
           <button role="menuitem" onClick={act(() => void session.newProject())}>
-            New project
+            {t("project.new")}
           </button>
           <label role="menuitem" className="menu-file">
-            Import .freedaw…
+            {t("project.import")}
             <input
               type="file"
               accept=".freedaw,.tessera,application/zip"
@@ -71,26 +73,29 @@ export function ProjectMenu() {
             />
           </label>
           <button role="menuitem" onClick={act(() => void session.exportArchive())}>
-            Export .freedaw…
+            {t("project.export")}
           </button>
-          {projects.length > 0 && <div className="menu-heading">Recent projects</div>}
+          {projects.length > 0 && <div className="menu-heading">{t("project.recent")}</div>}
           {projects.map((p) => (
             <div className="menu-project" key={p.id}>
               <button
                 role="menuitem"
                 className={p.id === currentId ? "current" : undefined}
                 onClick={act(() => p.id !== currentId && void session.openProject(p.id))}
-                title={p.modifiedAt ? `Saved ${new Date(p.modifiedAt).toLocaleString()}` : undefined}
+                title={
+                  p.modifiedAt
+                    ? t("project.savedAt", { date: new Date(p.modifiedAt).toLocaleString(getLocale()) })
+                    : undefined
+                }
               >
                 {p.name}
               </button>
               <button
                 className="delete"
-                aria-label={`Delete ${p.name}`}
-                title="Delete project"
+                aria-label={t("project.deleteLabel", { name: p.name })}
+                title={t("project.deleteTitle")}
                 onClick={act(() => {
-                  if (confirm(`Delete "${p.name}" and its audio? This can't be undone.`))
-                    void session.deleteProject(p.id);
+                  if (confirm(t("project.deleteConfirm", { name: p.name }))) void session.deleteProject(p.id);
                 })}
               >
                 ✕

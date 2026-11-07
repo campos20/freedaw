@@ -13,9 +13,10 @@ import {
   useTune,
 } from "../state/hooks";
 import { Session } from "../state/session";
+import { formatNumber, initLocale, useT } from "../i18n";
 import { Meter } from "../Meter";
 import { About } from "./About";
-import { AudioSettings } from "./AudioSettings";
+import { Settings } from "./Settings";
 import { StatusBar } from "./StatusBar";
 import { TransportBar } from "./TransportBar";
 import { TuneEditor } from "../tune/TuneEditor";
@@ -34,7 +35,11 @@ export function App({
   /** Subscribes to requests from outside the UI (e.g. a native menu) to show About. */
   onOpenAbout?: (open: () => void) => () => void;
 }) {
-  const [session] = useState(() => new Session(platform));
+  const [session] = useState(() => {
+    // Before the session exists: it names the first project in the chosen language.
+    initLocale();
+    return new Session(platform);
+  });
   useEffect(() => {
     void session.init();
     // Save pending edits when the tab is hidden or closed.
@@ -89,7 +94,7 @@ function Workspace({
       <TuneEditor />
       {mixer && !tuning && <Mixer onClose={() => setMixer(false)} />}
       <Footer onError={() => session.reportError(undefined)} />
-      {settingsOpen && <AudioSettings onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
       {aboutOpen && <About version={version} onClose={() => setAboutOpen(false)} />}
     </div>
   );
@@ -101,11 +106,12 @@ function Footer({ onError }: { onError: () => void }) {
   const xruns = useRecording((s) => s.xruns);
   const master = useTransport((s) => s.master);
   const platform = useSession().platform;
+  const t = useT();
   const save = {
-    saved: "All changes saved",
-    saving: "Saving…",
-    unsaved: "Unsaved changes",
-    error: "Save failed",
+    saved: t("footer.saved"),
+    saving: t("footer.saving"),
+    unsaved: t("footer.unsaved"),
+    error: t("footer.saveFailed"),
   }[ui.saveState];
   return (
     <StatusBar
@@ -119,20 +125,28 @@ function Footer({ onError }: { onError: () => void }) {
           </span>
         ),
         ui.error && (
-          <button key="error" className="error" data-testid="error" onClick={onError} title="Dismiss">
+          <button
+            key="error"
+            className="error"
+            data-testid="error"
+            onClick={onError}
+            title={t("footer.dismiss")}
+          >
             {ui.error} ✕
           </button>
         ),
         <span key="spacer" className="spacer" />,
         xruns > 0 && (
-          <span key="xruns" className="error" title="Audio dropouts since the device was opened">
-            {xruns} dropout{xruns === 1 ? "" : "s"}
+          <span key="xruns" className="error" title={t("footer.dropoutsTitle")}>
+            {t("footer.dropouts", { count: xruns })}
           </span>
         ),
-        `${tracks} track${tracks === 1 ? "" : "s"}`,
-        ui.engineRate ? `${(ui.engineRate / 1000).toFixed(1)} kHz` : "Audio off",
-        platform.edition === "web" ? "Web" : "Desktop",
-        <span key="master" className="master-meter" title="Master output">
+        t("footer.tracks", { count: tracks }),
+        ui.engineRate
+          ? t("units.kHz", { value: formatNumber(ui.engineRate / 1000, 1) })
+          : t("footer.audioOff"),
+        platform.edition === "web" ? t("common.web") : t("common.desktop"),
+        <span key="master" className="master-meter" title={t("footer.masterOutput")}>
           <Meter reading={master} testId="master-meter" />
         </span>,
       ]}

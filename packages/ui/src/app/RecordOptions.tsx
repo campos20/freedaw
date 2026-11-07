@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useT } from "../i18n";
 import { useRecording, useSession } from "../state/hooks";
 
 /** Count-in and punch settings next to the record button. */
 export function RecordOptions() {
   const session = useSession();
+  const t = useT();
   const countInBars = useRecording((s) => s.countInBars);
   const punch = useRecording((s) => s.punch);
   const [open, setOpen] = useState(false);
@@ -18,34 +20,34 @@ export function RecordOptions() {
     <div className="record-options" ref={ref}>
       <button
         className="icon-button narrow"
-        aria-label="Recording options"
+        aria-label={t("recordOptions.label")}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
         ▾
       </button>
       {open && (
-        <div className="popover" role="dialog" aria-label="Recording options">
+        <div className="popover" role="dialog" aria-label={t("recordOptions.label")}>
           <label>
-            Count-in
+            {t("recordOptions.countIn")}
             <select
               value={countInBars}
               onChange={(e) => session.setCountIn(Number(e.target.value))}
-              aria-label="Count-in"
+              aria-label={t("recordOptions.countIn")}
             >
-              <option value={0}>Off</option>
-              <option value={1}>1 bar</option>
-              <option value={2}>2 bars</option>
+              <option value={0}>{t("common.off")}</option>
+              <option value={1}>{t("recordOptions.bars", { count: 1 })}</option>
+              <option value={2}>{t("recordOptions.bars", { count: 2 })}</option>
             </select>
           </label>
-          <label title="Record only inside the loop region">
+          <label title={t("recordOptions.punchTitle")}>
             <input
               type="checkbox"
               checked={punch}
               onChange={(e) => session.setPunch(e.target.checked)}
-              aria-label="Punch"
+              aria-label={t("recordOptions.punch")}
             />
-            Punch in/out at the loop region
+            {t("recordOptions.punchLabel")}
           </label>
         </div>
       )}

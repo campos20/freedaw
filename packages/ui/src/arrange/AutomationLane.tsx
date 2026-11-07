@@ -18,6 +18,7 @@ import {
   paramToUnit,
   unitToParam,
 } from "../mixer/scale";
+import { deviceText, t, useT } from "../i18n";
 import { addPoint, findLane, movePoint, removeLane, removePoint } from "../model/edits";
 import { useSession } from "../state/hooks";
 import { frameToX, type GridLine, type View, xToFrame } from "./timeScale";
@@ -35,25 +36,34 @@ export interface LaneScale {
 }
 
 export function laneScale(track: Track, lane: Lane, project: Project): LaneScale | undefined {
-  const t = lane.target;
-  const gain = { toUnit: gainToFader, fromUnit: faderToGain, format: (g: number) => `${formatDb(g)} dB` };
-  switch (t.kind) {
+  const target = lane.target;
+  const gain = {
+    toUnit: gainToFader,
+    fromUnit: faderToGain,
+    format: (g: number) => t("units.dB", { value: formatDb(g) }),
+  };
+  switch (target.kind) {
     case "volume":
-      return { name: "Volume", ...gain };
+      return { name: t("automation.volume"), ...gain };
     case "pan":
-      return { name: "Pan", toUnit: (p) => (p + 1) / 2, fromUnit: (u) => u * 2 - 1, format: formatPan };
+      return {
+        name: t("automation.pan"),
+        toUnit: (p) => (p + 1) / 2,
+        fromUnit: (u) => u * 2 - 1,
+        format: formatPan,
+      };
     case "send": {
-      const send = track.sends.find((s) => s.id === t.send);
+      const send = track.sends.find((s) => s.id === target.send);
       const bus = project.tracks.find((x) => x.id === send?.target);
-      return send && { name: `Send → ${bus?.name ?? "?"}`, ...gain };
+      return send && { name: t("automation.send", { bus: bus?.name ?? t("common.unknown") }), ...gain };
     }
     case "param": {
-      const device = track.inserts.find((d) => d.id === t.device);
+      const device = track.inserts.find((d) => d.id === target.device);
       const info = device && (DEVICES[device.kind as DeviceKind] as (typeof DEVICES)[DeviceKind] | undefined);
-      const param: ParamInfo | undefined = info?.params.find((p) => p.id === t.param);
+      const param: ParamInfo | undefined = info?.params.find((p) => p.id === target.param);
       if (!info || !param) return undefined;
       return {
-        name: `${info.name}: ${param.name}`,
+        name: t("automation.param", { device: deviceText(info.name), param: deviceText(param.name) }),
         toUnit: (v) => paramToUnit(param, v),
         fromUnit: (u) => unitToParam(param, u),
         format: (v) => formatParam(param, v),
@@ -211,6 +221,7 @@ export function AutomationLane({ track, lane, scale, width, view, grid, snapFram
 
 export function LaneHeader({ lane, scale, width }: { lane: Lane; scale: LaneScale; width: number }) {
   const session = useSession();
+  useT();
   const edit = (label: string, recipe: Parameters<ReturnType<ReturnType<typeof useGesture>>["apply"]>[0]) =>
     session.store.getState().edit(label, recipe);
   return (
@@ -219,14 +230,12 @@ export function LaneHeader({ lane, scale, width }: { lane: Lane; scale: LaneScal
         {scale.name}
       </span>
       <span className="lane-value">
-        {lane.points.length
-          ? `${lane.points.length} point${lane.points.length === 1 ? "" : "s"}`
-          : "Click to add points"}
+        {lane.points.length ? t("automation.points", { count: lane.points.length }) : t("automation.empty")}
       </span>
       <div className="lane-buttons">
         <button
-          aria-label={`Hide ${scale.name} automation`}
-          title="Hide (keeps the automation)"
+          aria-label={t("automation.hideLabel", { name: scale.name })}
+          title={t("automation.hideTitle")}
           onClick={() =>
             edit("Hide lane", (p) => {
               const l = findLane(p, lane.id)?.lane;
@@ -234,11 +243,11 @@ export function LaneHeader({ lane, scale, width }: { lane: Lane; scale: LaneScal
             })
           }
         >
-          Hide
+          {t("automation.hide")}
         </button>
         <button
-          aria-label={`Delete ${scale.name} automation`}
-          title="Delete the lane and its points"
+          aria-label={t("automation.deleteLabel", { name: scale.name })}
+          title={t("automation.deleteTitle")}
           onClick={() => edit("Delete automation", (p) => removeLane(p, lane.id))}
         >
           ✕

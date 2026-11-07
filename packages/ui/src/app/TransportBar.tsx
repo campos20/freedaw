@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { formatBarsBeats, formatTime, type Meter } from "../arrange/timeScale";
 import { usePlayhead } from "../hooks/usePlayhead";
+import { useT } from "../i18n";
 import { useProject, useRecording, useSession, useTransport } from "../state/hooks";
 import { RecordOptions } from "./RecordOptions";
 import { LoopIcon, MagnetIcon, MetronomeIcon, PlayIcon, RecordIcon, RewindIcon, StopIcon } from "./icons";
@@ -27,6 +28,7 @@ export function TransportBar({
   onToggleMixer,
 }: TransportBarProps) {
   const session = useSession();
+  const t = useT();
   const edit = useProject((s) => s.edit);
   const tempo = useProject((s) => s.project.tempo);
   const timeSignature = useProject((s) => s.project.timeSignature);
@@ -62,32 +64,37 @@ export function TransportBar({
         <ProjectMenu />
       </div>
 
-      <div className="transport-controls" role="group" aria-label="Transport">
+      <div className="transport-controls" role="group" aria-label={t("transport.group")}>
         <button
           className="icon-button"
           onClick={() => session.seek(0)}
-          aria-label="Return to start"
-          title="Return to start (Home)"
+          aria-label={t("transport.returnToStart")}
+          title={t("transport.returnToStartTitle")}
         >
           <RewindIcon />
         </button>
         <button
           className={playing ? "icon-button play on" : "icon-button play"}
           onClick={() => (recording ? void session.stopRecording() : session.togglePlay())}
-          aria-label={playing ? "Pause" : "Play"}
-          title="Play / pause (Space)"
+          aria-label={playing ? t("transport.pause") : t("transport.play")}
+          title={t("transport.playPauseTitle")}
         >
           <PlayIcon />
         </button>
-        <button className="icon-button" onClick={() => session.stopAll()} aria-label="Stop" title="Stop">
+        <button
+          className="icon-button"
+          onClick={() => session.stopAll()}
+          aria-label={t("transport.stop")}
+          title={t("transport.stop")}
+        >
           <StopIcon />
         </button>
         <button
           className={`icon-button record${recording ? " on" : ""}${countingIn ? " counting-in" : ""}`}
           onClick={() => (recording ? void session.stopRecording() : void session.record())}
           aria-pressed={recording}
-          aria-label="Record"
-          title="Record armed tracks (R)"
+          aria-label={t("transport.record")}
+          title={t("transport.recordTitle")}
         >
           <RecordIcon />
         </button>
@@ -96,8 +103,8 @@ export function TransportBar({
           className={loop ? "icon-button toggle on" : "icon-button toggle"}
           onClick={() => edit(loop ? "Loop off" : "Loop on", (p) => void (p.loop.enabled = !p.loop.enabled))}
           aria-pressed={loop}
-          aria-label="Loop"
-          title="Loop (L)"
+          aria-label={t("transport.loop")}
+          title={t("transport.loopTitle")}
         >
           <LoopIcon />
         </button>
@@ -123,9 +130,9 @@ export function TransportBar({
             defaultValue={tempo}
             onBlur={(e) => commitTempo(Number(e.target.value))}
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-            aria-label="Tempo"
+            aria-label={t("transport.tempo")}
           />
-          <span>BPM</span>
+          <span>{t("units.bpm")}</span>
         </label>
         <span className="field signature">
           {timeSignature.numerator}/{timeSignature.denominator}
@@ -134,8 +141,8 @@ export function TransportBar({
           className={metronome ? "icon-button toggle on" : "icon-button toggle"}
           onClick={() => edit("Metronome", (p) => void (p.metronome = !p.metronome))}
           aria-pressed={metronome}
-          aria-label="Metronome"
-          title="Metronome (C)"
+          aria-label={t("transport.metronome")}
+          title={t("transport.metronomeTitle")}
         >
           <MetronomeIcon />
         </button>
@@ -146,24 +153,24 @@ export function TransportBar({
           className={mixer ? "icon-button toggle on wide" : "icon-button toggle wide"}
           onClick={onToggleMixer}
           aria-pressed={mixer}
-          aria-label="Mixer"
-          title="Mixer (X)"
+          aria-label={t("transport.mixer")}
+          title={t("transport.mixerTitle")}
         >
-          Mixer
+          {t("transport.mixer")}
         </button>
         <button
           className="icon-button"
           onClick={onOpenSettings}
-          aria-label="Audio settings"
-          title="Audio settings"
+          aria-label={t("transport.settings")}
+          title={t("transport.settings")}
         >
           ⚙
         </button>
         <button
           className="icon-button"
           onClick={onOpenAbout}
-          aria-label="About FreeDAW"
-          title="About FreeDAW"
+          aria-label={t("transport.about")}
+          title={t("transport.about")}
         >
           ⓘ
         </button>
@@ -171,24 +178,24 @@ export function TransportBar({
           className={snap ? "icon-button toggle on" : "icon-button toggle"}
           onClick={onToggleSnap}
           aria-pressed={snap}
-          aria-label="Snap to grid"
-          title="Snap to grid (N) — hold ⌘/Ctrl while dragging to bypass"
+          aria-label={t("transport.snap")}
+          title={t("transport.snapTitle")}
         >
           <MagnetIcon />
         </button>
         <button
           className="icon-button"
           onClick={() => onZoom(1.5)}
-          aria-label="Zoom out"
-          title="Zoom out (−)"
+          aria-label={t("transport.zoomOut")}
+          title={t("transport.zoomOutTitle")}
         >
           −
         </button>
         <button
           className="icon-button"
           onClick={() => onZoom(1 / 1.5)}
-          aria-label="Zoom in"
-          title="Zoom in (+)"
+          aria-label={t("transport.zoomIn")}
+          title={t("transport.zoomInTitle")}
         >
           +
         </button>

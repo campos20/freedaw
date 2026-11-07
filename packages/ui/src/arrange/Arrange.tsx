@@ -17,6 +17,7 @@ import {
 } from "react";
 import { useElementSize } from "../hooks/useElementSize";
 import { usePlayhead } from "../hooks/usePlayhead";
+import { deviceText, rich, t, useT } from "../i18n";
 import { SILENT } from "../Meter";
 import {
   addPoint,
@@ -81,6 +82,7 @@ interface ClipDrag {
 /** The arrange view: ruler, track headers, clip lanes, playhead, and all clip editing gestures. */
 export function Arrange({ view, onView, snap }: ArrangeProps) {
   const session = useSession();
+  useT();
   const store = session.store;
   const project = useProject((s) => s.project);
   const peaks = useProject((s) => s.peaks);
@@ -306,12 +308,12 @@ export function Arrange({ view, onView, snap }: ArrangeProps) {
           <button
             className="add-track"
             onClick={() => store.getState().edit("Add track", (p) => void addTrackAfter(p, selection.track))}
-            title="Add track"
+            title={t("arrange.addTrackTitle")}
           >
-            + Track
+            {t("arrange.addTrack")}
           </button>
-          <label className="add-track import" title="Import audio files">
-            Import…
+          <label className="add-track import" title={t("arrange.importTitle")}>
+            {t("arrange.import")}
             <input
               type="file"
               accept="audio/*,.wav,.flac,.mp3,.ogg,.m4a,.aac"
@@ -416,8 +418,11 @@ export function Arrange({ view, onView, snap }: ArrangeProps) {
           ))}
           {project.tracks.length === 0 && (
             <div className="empty-hint">
-              <strong>Drop audio files here</strong> or use <em>Import…</em> to create tracks.
-              <span>WAV, FLAC, MP3, OGG and M4A are supported.</span>
+              {rich(t("arrange.emptyHint"), {
+                b: (text) => <strong>{text}</strong>,
+                i: (text) => <em>{text}</em>,
+              })}
+              <span>{t("arrange.formats")}</span>
             </div>
           )}
         </div>
@@ -439,7 +444,7 @@ const GESTURE_LABELS: Record<ClipPart | "gain", string> = {
 /** Adds a track below the selected one (or at the end). */
 function addTrackAfter(p: Project, selectedTrack: number | undefined) {
   const index = p.tracks.findIndex((t) => t.id === selectedTrack);
-  return addTrack(p, undefined, index >= 0 ? index + 1 : p.tracks.length);
+  return addTrack(p, t("names.track", { n: p.tracks.length + 1 }), index >= 0 ? index + 1 : p.tracks.length);
 }
 
 /** Index of the track row under a viewport point, if any. */
@@ -451,12 +456,15 @@ function trackRowAt(x: number, y: number): number | undefined {
 /** Everything on a track that an automation lane can drive. */
 function automationTargets(track: Track, project: Project): { label: string; target: LaneTarget }[] {
   const out: { label: string; target: LaneTarget }[] = [
-    { label: "Volume", target: { kind: "volume" } },
-    { label: "Pan", target: { kind: "pan" } },
+    { label: t("automation.volume"), target: { kind: "volume" } },
+    { label: t("automation.pan"), target: { kind: "pan" } },
   ];
   for (const send of track.sends) {
     const bus = project.tracks.find((t) => t.id === send.target);
-    out.push({ label: `Send → ${bus?.name ?? "?"}`, target: { kind: "send", send: send.id } });
+    out.push({
+      label: t("automation.send", { bus: bus?.name ?? t("common.unknown") }),
+      target: { kind: "send", send: send.id },
+    });
   }
   for (const device of track.inserts) {
     const info = DEVICES[device.kind as DeviceKind] as (typeof DEVICES)[DeviceKind] | undefined;
@@ -464,7 +472,7 @@ function automationTargets(track: Track, project: Project): { label: string; tar
       // EQ: frequencies and gains (the band switches and types aren't worth a lane).
       if (device.kind === "eq" && !/Freq$|Gain$|^output$/.test(param.id)) continue;
       out.push({
-        label: `${info!.name}: ${param.name}`,
+        label: t("automation.param", { device: deviceText(info!.name), param: deviceText(param.name) }),
         target: { kind: "param", device: device.id, param: param.id },
       });
     }

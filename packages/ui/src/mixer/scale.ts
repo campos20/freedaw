@@ -1,4 +1,5 @@
 import type { ParamInfo } from "@freedaw/schema";
+import { deviceText, formatNumber, t } from "../i18n";
 
 /** Fader travel: position 0…1 ↔ gain. 0 is silence, ~0.6 is unity, 1 is +12 dB. */
 const TOP_DB = 12;
@@ -20,12 +21,13 @@ export function faderToGain(position: number): number {
 export function formatDb(gain: number): string {
   if (gain <= 0) return "−∞";
   const db = 20 * Math.log10(gain);
-  return `${db > 0.05 ? "+" : db < -0.05 ? "−" : ""}${Math.abs(db).toFixed(1)}`;
+  return `${db > 0.05 ? "+" : db < -0.05 ? "−" : ""}${formatNumber(Math.abs(db), 1)}`;
 }
 
 export function formatPan(pan: number): string {
-  if (Math.abs(pan) < 0.005) return "C";
-  return `${Math.round(Math.abs(pan) * 100)}${pan < 0 ? "L" : "R"}`;
+  if (Math.abs(pan) < 0.005) return t("units.panCenter");
+  const value = Math.round(Math.abs(pan) * 100);
+  return pan < 0 ? t("units.panLeft", { value }) : t("units.panRight", { value });
 }
 
 /** Parameter value ↔ control position 0…1 (log parameters map logarithmically). */
@@ -42,15 +44,19 @@ export function unitToParam(info: ParamInfo, unit: number): number {
 }
 
 export function formatParam(info: ParamInfo, value: number): string {
-  if (info.scale === "choice") return info.options?.[Math.round(value)] ?? String(value);
-  if (info.scale === "toggle") return value >= 0.5 ? "On" : "Off";
+  if (info.scale === "choice") {
+    const option = info.options?.[Math.round(value)];
+    return option === undefined ? String(value) : deviceText(option);
+  }
+  if (info.scale === "toggle") return value >= 0.5 ? t("common.on") : t("common.off");
   const unit = info.unit;
   if (unit === "Hz")
     return value >= 1000
-      ? `${(value / 1000).toFixed(value >= 10_000 ? 1 : 2)} kHz`
+      ? t("units.kHz", { value: formatNumber(value / 1000, value >= 10_000 ? 1 : 2) })
       : `${Math.round(value)} Hz`;
-  if (unit === "" && info.max <= 1 && info.min >= 0) return `${Math.round(value * 100)}%`;
+  if (unit === "" && info.max <= 1 && info.min >= 0)
+    return t("units.percent", { value: Math.round(value * 100) });
   if (unit === "" && info.min === -1 && info.max === 1) return formatPan(value);
   const digits = Math.abs(value) >= 100 ? 0 : Math.abs(value) >= 10 ? 1 : 2;
-  return `${value.toFixed(digits)}${unit === ":1" ? ":1" : unit ? ` ${unit}` : ""}`;
+  return `${formatNumber(value, digits)}${unit === ":1" ? ":1" : unit ? ` ${unit}` : ""}`;
 }

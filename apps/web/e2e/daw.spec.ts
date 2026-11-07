@@ -317,3 +317,31 @@ test("about shows the version, the repository and the update status", async ({ p
   await page.keyboard.press("Escape");
   await expect(about).toBeHidden();
 });
+
+test("switches the interface language and remembers it", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByTestId("language").selectOption("pt-BR");
+  // The whole UI switches at once, without a reload.
+  await expect(page.getByRole("dialog", { name: "Configurações" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Reproduzir" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
+  await page.keyboard.press("Escape");
+
+  await page.reload();
+  await expect(page.getByTestId("save-state")).toHaveText("Todas as alterações salvas");
+  await page.getByRole("button", { name: "Configurações" }).click();
+  await expect(page.getByTestId("language")).toHaveValue("pt-BR");
+  // Back to following the browser language (English here).
+  await page.getByTestId("language").selectOption("");
+  await expect(page.getByRole("button", { name: "Play" })).toBeVisible();
+});
+
+test("follows the browser language", async ({ browser }) => {
+  const context = await browser.newContext({ locale: "pt-BR" });
+  const page = await context.newPage();
+  await page.goto(HOME);
+  await expect(page.getByTestId("save-state")).toHaveText("Todas as alterações salvas");
+  await expect(page.getByRole("button", { name: /Sem título/ })).toBeVisible();
+  await context.close();
+});

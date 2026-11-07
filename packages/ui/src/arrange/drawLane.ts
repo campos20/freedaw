@@ -1,4 +1,5 @@
 import type { Clip, Peaks, Track } from "@freedaw/schema";
+import { t } from "../i18n";
 import { CLIP_HEADER } from "./hitTest";
 import { frameToX, type GridLine, type View } from "./timeScale";
 import { levelFor, pyramidFor } from "./waveform";
@@ -226,7 +227,7 @@ export function drawLiveTake(
   ctx.fillStyle = "rgba(0,0,0,0.85)";
   ctx.font = "600 11px system-ui, sans-serif";
   ctx.textBaseline = "middle";
-  ctx.fillText("● Recording", Math.max(x0, 0) + 6, top + CLIP_HEADER / 2 + 0.5);
+  ctx.fillText(t("arrange.recording"), Math.max(x0, 0) + 6, top + CLIP_HEADER / 2 + 0.5);
   const mid = top + CLIP_HEADER + (h - CLIP_HEADER) / 2;
   const half = (h - CLIP_HEADER) / 2 - 1;
   ctx.fillStyle = "#ffb3ae";
