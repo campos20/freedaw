@@ -76,7 +76,7 @@ recording (M3, pending hardware checks), the arrange view and projects.
 
 - Rust via [rustup](https://rustup.rs). `rust-toolchain.toml` pins stable plus the
   `wasm32-unknown-unknown` target, `rustfmt` and `clippy`.
-- Node.js 22+ and pnpm (the version is pinned in `package.json` → `packageManager`).
+- Node.js 22.6+ and pnpm (the version is pinned in `package.json` → `packageManager`).
 - Desktop edition: the [Tauri v2 system prerequisites](https://v2.tauri.app/start/prerequisites/)
   for your OS. On Linux you also need `libasound2-dev`.
 

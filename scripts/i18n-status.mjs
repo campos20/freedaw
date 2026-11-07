@@ -4,6 +4,7 @@
 //   pnpm i18n:status pt-BR    summary plus the missing keys of one locale
 //
 // Missing strings fall back to English at runtime, so an incomplete translation still works.
+// Loads the .ts catalogs with Node's type stripping (--experimental-strip-types), hence Node 22.6+.
 import { readdirSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
