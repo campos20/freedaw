@@ -186,7 +186,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
               </select>
             </label>
             <button onClick={() => void calibrate()} disabled={!!busy}>
-              {busy === t("session.calibrating") ? t("settings.calibrating") : t("settings.calibrate")}
+              {busy?.key === "session.calibrating" ? t("settings.calibrating") : t("settings.calibrate")}
             </button>
           </div>
         </section>

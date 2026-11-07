@@ -13,7 +13,7 @@ import {
   useTune,
 } from "../state/hooks";
 import { Session } from "../state/session";
-import { formatNumber, initLocale, useT } from "../i18n";
+import { formatNumber, initLocale, textOf, useT } from "../i18n";
 import { Meter } from "../Meter";
 import { About } from "./About";
 import { Settings } from "./Settings";
@@ -121,7 +121,7 @@ function Footer({ onError }: { onError: () => void }) {
         </span>,
         ui.busy && (
           <span key="busy" className="busy" data-testid="busy">
-            {ui.busy}
+            {textOf(ui.busy)}
           </span>
         ),
         ui.error && (
@@ -132,7 +132,7 @@ function Footer({ onError }: { onError: () => void }) {
             onClick={onError}
             title={t("footer.dismiss")}
           >
-            {ui.error} ✕
+            {textOf(ui.error)} ✕
           </button>
         ),
         <span key="spacer" className="spacer" />,

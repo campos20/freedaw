@@ -71,6 +71,9 @@ those names come from the audio engine's Rust tables. Translate the values only.
   Components call `useT()` (or `useLocale()`) so they re-render when the language changes; plain
   functions called during render can use `t` directly. `deviceText()` translates built-in device
   names, `formatNumber()` formats decimals and `rich()` renders `<b>`/`<i>` markup.
+- Text kept in state that stays on screen (progress, errors) is stored as a `Message`
+  (`msg(key, params)`) and translated when rendered with `textOf()`, so it follows a language
+  change. Throw `LocalizedError` instead of `Error` for messages from the catalog.
 - When you add a string, add it to `locales/en.ts` only. Other languages fall back to English until
   a translator adds it; `pnpm i18n:status` shows what's missing. If you can, add the translations
   you know.

@@ -6,7 +6,7 @@ import type {
   RecordedTake,
 } from "@freedaw/platform";
 import type { Peaks, Project, SourceInfo, TakeProgress, TuneAnalysis } from "@freedaw/schema";
-import { t } from "../i18n";
+import { LocalizedError, type Message, msg, t, type UiText } from "../i18n";
 import { isEdited } from "../tune/model";
 import { createStore } from "zustand/vanilla";
 import type { MeterReading } from "../Meter";
@@ -71,9 +71,9 @@ export type SaveState = "saved" | "saving" | "unsaved" | "error";
 export interface SessionUiState {
   /** Engine sample rate once started. */
   engineRate: number | undefined;
-  /** Long-running work in progress ("Loading audio 2/5…"). */
-  busy: string | undefined;
-  error: string | undefined;
+  /** Long-running work in progress ("Loading audio 2/5…"), translated when shown. */
+  busy: Message | undefined;
+  error: UiText | undefined;
   saveState: SaveState;
   projects: ProjectSummary[];
 }
@@ -178,7 +178,7 @@ export class Session {
 
   /** Opens the last project (or a new one) and lists saved projects. Runs once. */
   init(): Promise<void> {
-    this.initializing ??= this.run(t("session.opening"), async () => {
+    this.initializing ??= this.run(msg("session.opening"), async () => {
       // Desktop: reopen the saved devices (no user gesture or permission prompt needed). The web
       // opens the microphone only when a track is armed.
       if (
@@ -186,7 +186,7 @@ export class Session {
         Object.keys(this.recording.getState().settings).length
       ) {
         await this.applyAudioSettings(this.recording.getState().settings).catch((e: unknown) =>
-          this.reportError(t("session.settingsFailed", { error: message(e) })),
+          this.reportError(msg("session.settingsFailed", { error: message(e) })),
         );
       }
       await this.refreshProjects();
@@ -198,7 +198,7 @@ export class Session {
           await this.loadProject(await this.platform.storage.open(existing.id));
           return;
         } catch (e) {
-          this.reportError(t("session.openFailed", { name: existing.name, error: message(e) }));
+          this.reportError(msg("session.openFailed", { name: existing.name, error: message(e) }));
         }
       }
       await this.loadProject(newProject(newId(), t("names.untitled"), now()));
@@ -247,7 +247,7 @@ export class Session {
    * the project and its audio are sent to the new engine.
    */
   async applyAudioSettings(settings: AudioSettings): Promise<void> {
-    if (this.recording.getState().active) throw new Error(t("session.stopRecordingFirst"));
+    if (this.recording.getState().active) throw new LocalizedError("session.stopRecordingFirst");
     const position = this.transport.getState().position;
     this.stop();
     const { info, restarted } = await this.platform.configureAudio(settings);
@@ -264,7 +264,7 @@ export class Session {
     if ((this.recording.getState().engine?.inputChannels ?? 0) > 0) return;
     const settings = this.recording.getState().settings;
     await this.applyAudioSettings({ ...settings, inputDevice: settings.inputDevice ?? "default" });
-    if (!this.recording.getState().engine?.inputChannels) throw new Error(t("session.noInput"));
+    if (!this.recording.getState().engine?.inputChannels) throw new LocalizedError("session.noInput");
   }
 
   /** A fresh engine (after a device change): resend everything and reload the audio. */
@@ -291,7 +291,7 @@ export class Session {
       try {
         await this.ensureInput();
       } catch (e) {
-        this.reportError(t("session.armFailed", { error: message(e) }));
+        this.reportError(msg("session.armFailed", { error: message(e) }));
         return;
       }
       armed.add(trackId);
@@ -307,7 +307,7 @@ export class Session {
       try {
         await this.ensureInput();
       } catch (e) {
-        this.reportError(t("session.monitorFailed", { error: message(e) }));
+        this.reportError(msg("session.monitorFailed", { error: message(e) }));
         return;
       }
       monitored.add(trackId);
@@ -333,9 +333,9 @@ export class Session {
 
   /** Starts recording the armed tracks from the playhead (after the count-in). */
   record(): Promise<void> {
-    return this.run(t("session.startingRecording"), async () => {
+    return this.run(msg("session.startingRecording"), async () => {
       if (this.recording.getState().active) return;
-      if (this.recording.getState().armed.size === 0) throw new Error(t("session.armFirst"));
+      if (this.recording.getState().armed.size === 0) throw new LocalizedError("session.armFirst");
       await this.startEngine();
       await this.ensureInput();
       const project = this.project;
@@ -364,7 +364,7 @@ export class Session {
 
   /** Stops the transport and turns the takes into clips (one undo step). */
   stopRecording(): Promise<void> {
-    return this.run(t("session.savingTakes"), async () => {
+    return this.run(msg("session.savingTakes"), async () => {
       if (!this.recording.getState().active) return;
       this.stop();
       this.platform.send({ type: "SetRecord", enabled: false });
@@ -450,7 +450,7 @@ export class Session {
    */
   calibrate(inputChannel: number): Promise<number | undefined> {
     let result: number | undefined;
-    return this.run(t("session.calibrating"), async () => {
+    return this.run(msg("session.calibrating"), async () => {
       await this.startEngine();
       await this.ensureInput();
       const project = this.project;
@@ -491,7 +491,7 @@ export class Session {
       try {
         const m = take && (await this.platform.measureLatency(project.id, take.path, CALIBRATION_BPM));
         if (!m || m.confidence < MIN_CONFIDENCE) {
-          throw new Error(t("session.noClicks"));
+          throw new LocalizedError("session.noClicks");
         }
         const info = this.recording.getState().engine!;
         const stored = loadJson<Record<string, number>>(LATENCY_KEY) ?? {};
@@ -522,7 +522,7 @@ export class Session {
   // Projects -------------------------------------------------------------------------------
 
   newProject(name = t("names.untitled")): Promise<void> {
-    return this.run(t("session.creating"), async () => {
+    return this.run(msg("session.creating"), async () => {
       await this.flushSave();
       await this.loadProject(newProject(newId(), name, now()));
       await this.saveNow();
@@ -530,14 +530,14 @@ export class Session {
   }
 
   openProject(id: string): Promise<void> {
-    return this.run(t("session.opening"), async () => {
+    return this.run(msg("session.opening"), async () => {
       await this.flushSave();
       await this.loadProject(await this.platform.storage.open(id));
     });
   }
 
   importArchive(file: File): Promise<void> {
-    return this.run(t("session.importingProject"), async () => {
+    return this.run(msg("session.importingProject"), async () => {
       await this.flushSave();
       await this.loadProject(await this.platform.storage.importArchive(file, newId()));
       await this.refreshProjects();
@@ -545,14 +545,14 @@ export class Session {
   }
 
   exportArchive(): Promise<void> {
-    return this.run(t("session.exporting"), async () => {
+    return this.run(msg("session.exporting"), async () => {
       await this.flushSave();
       await this.platform.storage.exportArchive(this.project.id);
     });
   }
 
   deleteProject(id: string): Promise<void> {
-    return this.run(t("session.deleting"), async () => {
+    return this.run(msg("session.deleting"), async () => {
       if (id === this.project.id) {
         clearTimeout(this.saveTimer);
         await this.platform.storage.delete(id);
@@ -581,14 +581,14 @@ export class Session {
    * engine and places it as a clip at `start` on `trackId`, or on a new track per file.
    */
   importFiles(files: File[], target: { trackId?: number; start?: number } = {}): Promise<void> {
-    return this.run(t("session.importingAudio"), async () => {
+    return this.run(msg("session.importingAudio"), async () => {
       await this.startEngine().catch(() => {}); // Decoding works without output; playback resumes later.
       for (const [i, file] of files.entries()) {
         this.ui.setState({
           busy:
             files.length > 1
-              ? t("session.importingFileOf", { i: i + 1, n: files.length, name: file.name })
-              : t("session.importingFile", { name: file.name }),
+              ? msg("session.importingFileOf", { i: i + 1, n: files.length, name: file.name })
+              : msg("session.importingFile", { name: file.name }),
         });
         const info = await this.platform.importAudio(file);
         const projectId = this.project.id;
@@ -621,7 +621,7 @@ export class Session {
     try {
       await this.startEngine();
     } catch (e) {
-      this.reportError(t("session.audioFailed", { error: message(e) }));
+      this.reportError(msg("session.audioFailed", { error: message(e) }));
       return;
     }
     this.platform.send({ type: "Play" });
@@ -654,7 +654,7 @@ export class Session {
 
   /** Opens a clip in the Tune editor, analyzing it first if needed. */
   openTune(clipId: number): Promise<void> {
-    return this.run(t("session.analyzing"), async () => {
+    return this.run(msg("session.analyzing"), async () => {
       await this.startEngine().catch(() => {}); // Analysis works before audio output starts.
       await this.openTuneSession(clipId);
       const found = this.findClipById(clipId);
@@ -707,7 +707,7 @@ export class Session {
       pending = (async () => {
         const found = this.findClipById(clipId);
         const source = found && this.project.sources.find((s) => s.id === found.clip.sourceId);
-        if (!source) throw new Error(t("session.clipAudioMissing"));
+        if (!source) throw new LocalizedError("session.clipAudioMissing");
         const analysis = await this.platform.tune.open(this.tuneSessionId(clipId), projectId, source.file);
         if (this.project.id !== projectId) return;
         this.tune.setState((s) => ({ analyses: new Map(s.analyses).set(clipId, analysis) }));
@@ -737,7 +737,7 @@ export class Session {
       try {
         await this.openTuneSession(clipId);
       } catch (e) {
-        this.reportError(t("session.tuneAnalyzeFailed", { name: clip.name, error: message(e) }));
+        this.reportError(msg("session.tuneAnalyzeFailed", { name: clip.name, error: message(e) }));
         return;
       }
     }
@@ -772,7 +772,7 @@ export class Session {
         if (!this.replan.delete(clipId)) break;
       }
     } catch (e) {
-      this.reportError(t("session.tuneRenderFailed", { error: message(e) }));
+      this.reportError(msg("session.tuneRenderFailed", { error: message(e) }));
     } finally {
       this.planning.delete(clipId);
     }
@@ -813,7 +813,9 @@ export class Session {
     const tuned = project.tracks.flatMap((t) => t.clips).filter((c) => c.tune?.notes.some(isEdited));
     for (const [i, clip] of tuned.entries()) {
       if (this.project.id !== project.id) return;
-      this.ui.setState({ busy: t("session.preparingTune", { i: i + 1, n: tuned.length, name: clip.name }) });
+      this.ui.setState({
+        busy: msg("session.preparingTune", { i: i + 1, n: tuned.length, name: clip.name }),
+      });
       await this.ensureTuned(clip.id);
     }
   }
@@ -825,7 +827,7 @@ export class Session {
     );
     for (const [i, source] of sources.entries()) {
       this.ui.setState({
-        busy: t("session.loadingAudio", { i: i + 1, n: sources.length, name: source.name }),
+        busy: msg("session.loadingAudio", { i: i + 1, n: sources.length, name: source.name }),
       });
       try {
         const file = await this.platform.storage.readFile(project.id, source.file);
@@ -833,7 +835,7 @@ export class Session {
         if (this.project.id !== project.id) return; // Another project was opened meanwhile.
         this.registerAudio(source.id, info);
       } catch (e) {
-        this.reportError(t("session.missingAudio", { name: source.name, error: message(e) }));
+        this.reportError(msg("session.missingAudio", { name: source.name, error: message(e) }));
       }
     }
   }
@@ -874,7 +876,7 @@ export class Session {
         // Remember the track so its take is marked, and say which track lost audio.
         if (this.recording.getState().active) this.overrunTracks.add(event.track);
         const name = this.project.tracks.find((x) => x.id === event.track)?.name ?? t("session.aTrack");
-        this.reportError(t("session.overrun", { name }));
+        this.reportError(msg("session.overrun", { name }));
         break;
       }
       case "MasterMeter":
@@ -919,7 +921,7 @@ export class Session {
         },
         (e: unknown) => {
           this.ui.setState({ saveState: "error" });
-          this.reportError(t("session.saveFailed", { error: message(e) }));
+          this.reportError(msg("session.saveFailed", { error: message(e) }));
         },
       );
     return this.saving;
@@ -929,22 +931,22 @@ export class Session {
     try {
       this.ui.setState({ projects: await this.platform.storage.list() });
     } catch (e) {
-      this.reportError(t("session.listFailed", { error: message(e) }));
+      this.reportError(msg("session.listFailed", { error: message(e) }));
     }
   }
 
-  reportError(error: string | undefined) {
+  reportError(error: UiText | undefined) {
     this.ui.setState({ error });
   }
 
   /** Runs `task` after any running one, showing `label` while busy and reporting failures. */
-  private run(label: string, task: () => Promise<void>): Promise<void> {
+  private run(label: Message, task: () => Promise<void>): Promise<void> {
     const next = this.queue.then(async () => {
       this.ui.setState({ busy: label, error: undefined });
       try {
         await task();
       } catch (e) {
-        this.reportError(message(e));
+        this.reportError(e instanceof LocalizedError ? e.text : message(e));
       } finally {
         this.ui.setState({ busy: undefined });
       }

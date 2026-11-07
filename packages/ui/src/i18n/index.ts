@@ -35,6 +35,37 @@ export type MessageKey = Paths<Omit<typeof en, "devices">>;
 
 export type MessageParams = Record<string, string | number>;
 
+/**
+ * A message kept as a key, translated when shown, so text that stays on screen (progress,
+ * errors) follows a language change.
+ */
+export interface Message {
+  key: MessageKey;
+  params?: MessageParams;
+}
+
+/** A `Message`, or plain text that can't be translated (errors from the engine or the OS). */
+export type UiText = Message | string;
+
+export function msg(key: MessageKey, params?: MessageParams): Message {
+  return params ? { key, params } : { key };
+}
+
+/** The text to show for `text` in the current language. */
+export function textOf(text: UiText): string {
+  return typeof text === "string" ? text : t(text.key, text.params);
+}
+
+/** An error whose message is a `Message`: shown translated, and re-translated on a language change. */
+export class LocalizedError extends Error {
+  readonly text: Message;
+  constructor(key: MessageKey, params?: MessageParams) {
+    super(t(key, params));
+    this.name = "LocalizedError";
+    this.text = msg(key, params);
+  }
+}
+
 export type { LocaleInfo };
 export { LOCALES };
 
