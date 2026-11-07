@@ -1,6 +1,7 @@
 import { DEVICES, type Device, type DeviceKind, type ParamInfo } from "@freedaw/schema";
 import { type PointerEvent, useRef } from "react";
 import { useCanvas } from "../hooks/useCanvas";
+import { deviceText, formatNumber, t, useT } from "../i18n";
 import {
   addPoint,
   ensureLane,
@@ -13,7 +14,7 @@ import {
 } from "../model/edits";
 import { useProject, useSession, useTransport } from "../state/hooks";
 import type { Recipe } from "../state/store";
-import { BAND_TYPES, bands, EQ_BANDS, hasGain, responseDb } from "./eqCurve";
+import { bands, EQ_BANDS, hasGain, responseDb } from "./eqCurve";
 import { useGesture } from "./gesture";
 import { formatParam, paramToUnit, unitToParam } from "./scale";
 
@@ -22,6 +23,7 @@ const DYNAMICS = new Set(["compressor", "gate", "limiter"]);
 /** Floating editor for one device: its parameters, bypass, order and automation. */
 export function DeviceEditor({ deviceId, onClose }: { deviceId: number; onClose: () => void }) {
   const session = useSession();
+  useT();
   const project = useProject((s) => s.project);
   const found = findDevice(project, deviceId);
   const gr = useTransport((s) => s.reduction.get(deviceId) ?? 0);
@@ -29,6 +31,7 @@ export function DeviceEditor({ deviceId, onClose }: { deviceId: number; onClose:
   const { device, chain, track } = found;
   const info = DEVICES[device.kind as DeviceKind] as (typeof DEVICES)[DeviceKind] | undefined;
   const index = chain.indexOf(device);
+  const name = info ? deviceText(info.name) : device.kind;
   const edit = (label: string, recipe: Recipe) => session.store.getState().edit(label, recipe);
   const automate = (param: ParamInfo) =>
     track &&
@@ -39,15 +42,15 @@ export function DeviceEditor({ deviceId, onClose }: { deviceId: number; onClose:
     });
 
   return (
-    <div className="device-editor" role="dialog" aria-label={`${info?.name ?? device.kind} settings`}>
+    <div className="device-editor" role="dialog" aria-label={t("device.settings", { device: name })}>
       <header>
         <strong>
-          {track?.name ?? "Master"} › {info?.name ?? device.kind}
+          {track?.name ?? t("common.master")} › {name}
         </strong>
         {DYNAMICS.has(device.kind) && (
-          <span className="gr-readout" title="Gain reduction" data-testid="gain-reduction">
+          <span className="gr-readout" title={t("device.gainReduction")} data-testid="gain-reduction">
             <span className="gr-bar" style={{ width: `${Math.min(100, gr * 4)}%` }} />
-            GR {gr.toFixed(1)} dB
+            {t("device.gr", { value: formatNumber(gr, 1) })}
           </span>
         )}
         <span className="spacer" />
@@ -61,37 +64,37 @@ export function DeviceEditor({ deviceId, onClose }: { deviceId: number; onClose:
             })
           }
         >
-          {device.bypass ? "Bypassed" : "On"}
+          {device.bypass ? t("device.bypassed") : t("device.on")}
         </button>
         <button
           disabled={index <= 0}
-          aria-label="Move earlier"
+          aria-label={t("device.moveEarlier")}
           onClick={() => edit("Move device", (p) => moveDevice(p, deviceId, index - 1))}
         >
           ◀
         </button>
         <button
           disabled={index >= chain.length - 1}
-          aria-label="Move later"
+          aria-label={t("device.moveLater")}
           onClick={() => edit("Move device", (p) => moveDevice(p, deviceId, index + 1))}
         >
           ▶
         </button>
         <button
-          aria-label="Remove device"
+          aria-label={t("device.removeLabel")}
           onClick={() => {
             edit("Remove device", (p) => removeDevice(p, deviceId));
             onClose();
           }}
         >
-          Remove
+          {t("device.remove")}
         </button>
-        <button className="pane-close" aria-label="Close device" onClick={onClose}>
+        <button className="pane-close" aria-label={t("device.close")} onClick={onClose}>
           ✕
         </button>
       </header>
       {!info ? (
-        <p className="device-note">This device comes from a newer version of FreeDAW and is bypassed.</p>
+        <p className="device-note">{t("device.newerVersion")}</p>
       ) : device.kind === "eq" ? (
         <EqEditor device={device} onAutomate={track ? automate : undefined} />
       ) : (
@@ -122,6 +125,8 @@ function ParamControl({
   compact?: boolean;
 }) {
   const session = useSession();
+  useT();
+  const label = deviceText(param.name);
   const gesture = useGesture()(`${param.name}`);
   const value = paramValue(device, param.id);
   const set = (v: number) => gesture.apply((p) => setParam(p, device.id, param.id, v));
@@ -132,10 +137,10 @@ function ParamControl({
   let control;
   if (param.scale === "choice") {
     control = (
-      <select aria-label={param.name} value={Math.round(value)} onChange={(e) => set(Number(e.target.value))}>
+      <select aria-label={label} value={Math.round(value)} onChange={(e) => set(Number(e.target.value))}>
         {param.options?.map((o, i) => (
           <option key={o} value={i}>
-            {o}
+            {deviceText(o)}
           </option>
         ))}
       </select>
@@ -144,7 +149,7 @@ function ParamControl({
     control = (
       <input
         type="checkbox"
-        aria-label={param.name}
+        aria-label={label}
         checked={value >= 0.5}
         onChange={(e) => set(e.target.checked ? 1 : 0)}
       />
@@ -155,7 +160,7 @@ function ParamControl({
         type="range"
         min={0}
         max={1000}
-        aria-label={param.name}
+        aria-label={label}
         value={Math.round(paramToUnit(param, value) * 1000)}
         onPointerDown={gesture.onPointerDown}
         onPointerUp={gesture.onPointerUp}
@@ -166,7 +171,7 @@ function ParamControl({
   }
   return (
     <label className={compact ? "param compact" : "param"}>
-      {!compact && <span className="param-name">{param.name}</span>}
+      {!compact && <span className="param-name">{label}</span>}
       {control}
       {/* Selects and checkboxes show their own state; compact rows skip the readout. */}
       {!(compact && (param.scale === "choice" || param.scale === "toggle")) && (
@@ -176,11 +181,11 @@ function ParamControl({
         <button
           type="button"
           className="mini"
-          title={`Automate ${param.name}`}
-          aria-label={`Automate ${param.name}`}
+          title={t("device.automate", { param: label })}
+          aria-label={t("device.automate", { param: label })}
           onClick={onAutomate}
         >
-          A
+          {t("device.automateShort")}
         </button>
       )}
     </label>
@@ -195,6 +200,7 @@ const DB_RANGE = 24;
 const BAND_COLORS = ["#ff9f0a", "#ffd60a", "#30d158", "#64d2ff", "#0a84ff", "#bf5af2", "#ff375f", "#ac8e68"];
 
 function EqEditor({ device, onAutomate }: { device: Device; onAutomate?: (p: ParamInfo) => void }) {
+  useT();
   const canvas = useRef<HTMLCanvasElement>(null);
   const gesture = useGesture();
   const drag = useRef<{ band: number; g: ReturnType<typeof gesture> } | null>(null);
@@ -312,10 +318,10 @@ function EqEditor({ device, onAutomate }: { device: Device; onAutomate?: (p: Par
       <div className="eq-bands">
         <div className="eq-band head">
           <span />
-          <span>Type</span>
-          <span>Frequency</span>
-          <span>Gain</span>
-          <span>Q</span>
+          <span>{t("device.eqType")}</span>
+          <span>{t("device.eqFrequency")}</span>
+          <span>{t("device.eqGain")}</span>
+          <span>{t("device.eqQ")}</span>
         </div>
         {Array.from({ length: EQ_BANDS }, (_, i) => {
           const p = (k: number) => params[i * 5 + k]!;
@@ -337,14 +343,16 @@ function EqEditor({ device, onAutomate }: { device: Device; onAutomate?: (p: Par
                   onAutomate={onAutomate && (() => onAutomate(p(3)))}
                 />
               ) : (
-                <span className="param compact muted">{BAND_TYPES[list[i]!.type]}</span>
+                <span className="param compact muted">
+                  {deviceText((p(1) as ParamInfo).options?.[list[i]!.type] ?? "")}
+                </span>
               )}
               <ParamControl device={device} param={p(4)} compact />
             </div>
           );
         })}
         <div className="eq-band">
-          <span className="param-name">Output</span>
+          <span className="param-name">{t("device.eqOutput")}</span>
           <ParamControl device={device} param={params[EQ_BANDS * 5]!} compact />
         </div>
       </div>

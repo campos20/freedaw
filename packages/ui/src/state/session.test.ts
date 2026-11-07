@@ -1,7 +1,8 @@
 import type { AudioPlatform, ProjectStorage, RecordedTake } from "@freedaw/platform";
 import type { Command, Event, Project, SourceInfo } from "@freedaw/schema";
 import { produce } from "immer";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { setLocale, textOf, type UiText } from "../i18n";
 import { addClip, addSource, addTrack, newProject } from "../model/edits";
 import { adoptLegacyKeys, Session } from "./session";
 
@@ -154,7 +155,7 @@ describe("Session", () => {
     await session.record();
 
     emit({ type: "CaptureOverrun", track: trackId });
-    expect(session.ui.getState().error).toMatch(/audio was lost on "Track 1"/);
+    expect(errorText(session)).toMatch(/audio was lost on "Track 1"/);
 
     await session.stopRecording();
     const take1 = session.project.tracks[0]!.clips.find((c) => c.name.includes("take"));
@@ -173,6 +174,31 @@ describe("Session", () => {
 
     await session.stopRecording();
     expect(session.recording.getState().active).toBe(false);
-    expect(session.ui.getState().error).toMatch(/quota/);
+    expect(errorText(session)).toMatch(/quota/);
+  });
+
+  it("shows status messages in the current language, even after switching", async () => {
+    const project = savedProject();
+    const trackId = project.tracks[0]!.id;
+    const { platform, emit } = fakePlatform(44_100, project);
+    const session = new Session(platform);
+    await session.init();
+
+    emit({ type: "CaptureOverrun", track: trackId });
+    setLocale("pt-BR");
+    expect(errorText(session)).toMatch(/perda de áudio em "Track 1"/);
+
+    // An error thrown inside a task (nothing is armed) follows the language too.
+    await session.record();
+    expect(errorText(session)).toBe("Arme uma faixa (●) antes de gravar.");
+    setLocale("en");
+    expect(errorText(session)).toBe("Arm a track (●) before recording.");
   });
 });
+
+afterEach(() => setLocale("en"));
+
+function errorText(session: Session): string | undefined {
+  const error: UiText | undefined = session.ui.getState().error;
+  return error === undefined ? undefined : textOf(error);
+}

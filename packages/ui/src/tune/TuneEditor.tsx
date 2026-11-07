@@ -3,6 +3,7 @@ import type { Draft } from "immer";
 import { type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useElementSize } from "../hooks/useElementSize";
 import { usePlayhead } from "../hooks/usePlayhead";
+import { t, useT } from "../i18n";
 import { useProject, useSession, useTune } from "../state/hooks";
 import {
   correctPitch,
@@ -19,13 +20,15 @@ import "./Tune.css";
 const KEYS: Key[] = (["major", "minor"] as const).flatMap((mode) =>
   NOTE_NAMES.map((_, tonic) => ({ tonic, mode })),
 );
-const keyLabel = (k: Key) => `${NOTE_NAMES[k.tonic]} ${k.mode}`;
+const keyLabel = (k: Key) =>
+  t(k.mode === "major" ? "tune.major" : "tune.minor", { tonic: NOTE_NAMES[k.tonic]! });
 const keyValue = (k: Key | null) => (k ? `${k.tonic}:${k.mode}` : "chromatic");
 const PANEL = 232;
 
 /** Bottom pane for note-level pitch and timing editing of the clip open in Tune. */
 export function TuneEditor() {
   const session = useSession();
+  useT();
   const clipId = useTune((s) => s.editing);
   const analysis = useTune((s) => (clipId === undefined ? undefined : s.analyses.get(clipId)));
   const clip = useProject((s) => (clipId === undefined ? undefined : findClip(s.project, clipId)));
@@ -46,7 +49,7 @@ export function TuneEditor() {
   };
 
   return (
-    <section className="tune-pane" style={{ height }} aria-label="Tune editor" data-testid="tune-editor">
+    <section className="tune-pane" style={{ height }} aria-label={t("tune.editor")} data-testid="tune-editor">
       <div className="tune-resizer" onPointerDown={onResize} />
       <TuneBody
         key={clipId}
@@ -66,6 +69,7 @@ interface BodyProps {
 
 function TuneBody({ clip, analysis, onClose }: BodyProps) {
   const session = useSession();
+  useT();
   const project = useProject((s) => s.project);
   const bypass = useTune((s) => s.bypass.has(clip.id));
   const notes = clip.tune.notes;
@@ -237,8 +241,8 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
       </div>
       <aside className="tune-panel" style={{ width: PANEL }}>
         <header>
-          <strong title={clip.name}>Tune · {clip.name}</strong>
-          <button className="tune-close" aria-label="Close Tune" onClick={onClose}>
+          <strong title={clip.name}>{t("tune.title", { clip: clip.name })}</strong>
+          <button className="tune-close" aria-label={t("tune.close")} onClick={onClose}>
             ✕
           </button>
         </header>
@@ -246,23 +250,23 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
           <button
             className={bypass ? "on" : ""}
             aria-pressed={bypass}
-            title="Compare with the original audio"
+            title={t("tune.abTitle")}
             onClick={() => session.setTuneBypass(clip.id, !bypass)}
           >
-            A/B {bypass ? "original" : "tuned"}
+            {bypass ? t("tune.abOriginal") : t("tune.abTuned")}
           </button>
-          <button onClick={zoomToSelection} title="Zoom to the selection (or all notes)">
-            Zoom
+          <button onClick={zoomToSelection} title={t("tune.zoomTitle")}>
+            {t("tune.zoom")}
           </button>
-          <label className="tune-check" title="Scroll with the playhead">
+          <label className="tune-check" title={t("tune.followTitle")}>
             <input type="checkbox" checked={follow} onChange={(e) => setFollow(e.target.checked)} />
-            Follow
+            {t("tune.follow")}
           </label>
         </div>
 
-        <h4>Scale</h4>
+        <h4>{t("tune.scale")}</h4>
         <select
-          aria-label="Key"
+          aria-label={t("tune.key")}
           value={keyValue(keySig)}
           onChange={(e) => {
             const value = e.target.value;
@@ -270,19 +274,22 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
             edit("Tune: key", (_, tune) => void (tune.key = key));
           }}
         >
-          <option value="chromatic">Chromatic</option>
+          <option value="chromatic">{t("tune.chromatic")}</option>
           {KEYS.map((k) => (
             <option key={keyValue(k)} value={keyValue(k)}>
-              {keyLabel(k)}
-              {keyValue(k) === keyValue(analysis.key) ? " (detected)" : ""}
+              {keyValue(k) === keyValue(analysis.key)
+                ? t("tune.detected", { key: keyLabel(k) })
+                : keyLabel(k)}
             </option>
           ))}
         </select>
 
-        <h4>Auto-correct {selected.size ? `${selected.size} selected` : "all notes"}</h4>
-        <Slider label="Pitch center" value={center} onChange={setCenter} />
-        <Slider label="Pitch drift" value={drift} onChange={setDrift} />
-        <Slider label="Vibrato" value={vibrato} onChange={setVibrato} />
+        <h4>
+          {selected.size ? t("tune.autoCorrectSelected", { count: selected.size }) : t("tune.autoCorrectAll")}
+        </h4>
+        <Slider label={t("tune.pitchCenter")} value={center} onChange={setCenter} />
+        <Slider label={t("tune.pitchDrift")} value={drift} onChange={setDrift} />
+        <Slider label={t("tune.vibrato")} value={vibrato} onChange={setVibrato} />
         <button
           className="primary"
           onClick={() =>
@@ -298,12 +305,16 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
             })
           }
         >
-          Correct pitch
+          {t("tune.correct")}
         </button>
 
-        <h4>Quantize timing ({project.tempo} BPM)</h4>
+        <h4>{t("tune.quantizeTitle", { tempo: project.tempo })}</h4>
         <div className="tune-row">
-          <select aria-label="Grid" value={division} onChange={(e) => setDivision(Number(e.target.value))}>
+          <select
+            aria-label={t("tune.grid")}
+            value={division}
+            onChange={(e) => setDivision(Number(e.target.value))}
+          >
             <option value={4}>1/4</option>
             <option value={8}>1/8</option>
             <option value={16}>1/16</option>
@@ -313,7 +324,7 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
             ±
             <input
               type="number"
-              aria-label="Tolerance (ms)"
+              aria-label={t("tune.tolerance")}
               min={5}
               max={500}
               step={5}
@@ -323,7 +334,7 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
             ms
           </label>
         </div>
-        <Slider label="Strength" value={strength} onChange={setStrength} />
+        <Slider label={t("tune.strength")} value={strength} onChange={setStrength} />
         <button
           onClick={() =>
             edit("Tune: quantize", (ns) => {
@@ -342,31 +353,27 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
             })
           }
         >
-          Quantize
+          {t("tune.quantize")}
         </button>
 
-        <h4>Selection</h4>
+        <h4>{t("tune.selection")}</h4>
         <Slider
-          label="Drift"
+          label={t("tune.drift")}
           value={selDrift}
           disabled={!selected.size}
           onChange={(v) => setSelectionParam("drift", v, "move")}
           onCommit={(v) => setSelectionParam("drift", v, "end")}
         />
         <Slider
-          label="Vibrato"
+          label={t("tune.vibrato")}
           value={selMod}
           disabled={!selected.size}
           onChange={(v) => setSelectionParam("mod", v, "move")}
           onCommit={(v) => setSelectionParam("mod", v, "end")}
         />
         <div className="tune-row">
-          <button
-            disabled={!selected.size}
-            onClick={() => moveSelection(0)}
-            title="Snap to the nearest semitone"
-          >
-            Snap
+          <button disabled={!selected.size} onClick={() => moveSelection(0)} title={t("tune.snapTitle")}>
+            {t("tune.snap")}
           </button>
           <button
             disabled={!selected.size}
@@ -377,7 +384,7 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
               })
             }
           >
-            Reset
+            {t("tune.reset")}
           </button>
           <button
             onClick={() =>
@@ -386,13 +393,10 @@ function TuneBody({ clip, analysis, onClose }: BodyProps) {
               })
             }
           >
-            Reset all
+            {t("tune.resetAll")}
           </button>
         </div>
-        <p className="tune-hint">
-          Drag notes up or down (Alt: free pitch), sideways to move them, edges to stretch. Double-click
-          splits. Wheel scrolls; ⌘/Ctrl + wheel zooms time, Alt + wheel zooms pitch.
-        </p>
+        <p className="tune-hint">{t("tune.hint")}</p>
       </aside>
     </div>
   );
@@ -419,7 +423,7 @@ function Slider(p: {
         onPointerUp={(e) => p.onCommit?.(Number(e.currentTarget.value) / 100)}
         onKeyUp={(e) => p.onCommit?.(Number(e.currentTarget.value) / 100)}
       />
-      <output>{Math.round(p.value * 100)}%</output>
+      <output>{t("units.percent", { value: Math.round(p.value * 100) })}</output>
     </label>
   );
 }

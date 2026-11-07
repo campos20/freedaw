@@ -1,5 +1,6 @@
 import { DEVICES, type Device, type DeviceKind, type Project, type Track } from "@freedaw/schema";
 import { type PointerEvent as ReactPointerEvent, useState } from "react";
+import { deviceText, t, useT } from "../i18n";
 import { SILENT } from "../Meter";
 import {
   addDevice,
@@ -23,6 +24,7 @@ const KINDS = Object.entries(DEVICES) as [DeviceKind, (typeof DEVICES)[DeviceKin
 /** Bottom pane with a channel strip per track, then the master. */
 export function Mixer({ onClose }: { onClose: () => void }) {
   const session = useSession();
+  useT();
   const project = useProject((s) => s.project);
   const [height, setHeight] = useState(360);
   const [editing, setEditing] = useState<number | undefined>();
@@ -42,15 +44,22 @@ export function Mixer({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <section className="mixer-pane" style={{ height }} aria-label="Mixer" data-testid="mixer">
+    <section className="mixer-pane" style={{ height }} aria-label={t("mixer.title")} data-testid="mixer">
       <div className="pane-resizer" onPointerDown={onResize} />
       <header className="mixer-header">
-        <strong>Mixer</strong>
-        <button onClick={() => edit("Add bus", (p) => void addTrack(p, undefined, undefined, "bus"))}>
-          + Bus
+        <strong>{t("mixer.title")}</strong>
+        <button
+          onClick={() =>
+            edit("Add bus", (p) => {
+              const n = p.tracks.filter((x) => x.kind === "bus").length + 1;
+              addTrack(p, t("names.bus", { n }), undefined, "bus");
+            })
+          }
+        >
+          {t("mixer.addBus")}
         </button>
         <span className="spacer" />
-        <button className="pane-close" aria-label="Close mixer" onClick={onClose}>
+        <button className="pane-close" aria-label={t("mixer.close")} onClick={onClose}>
           ✕
         </button>
       </header>
@@ -74,6 +83,7 @@ interface StripProps {
 
 function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
   const session = useSession();
+  useT();
   const meter = useTransport((s) => s.tracks.get(track.id)) ?? SILENT;
   const gesture = useGesture();
   const edit = (label: string, recipe: Recipe) => session.store.getState().edit(label, recipe);
@@ -81,7 +91,7 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
   const pan = gesture(`${track.name}: pan`);
   const buses = routableBuses(project, track.id);
   const sendTargets = buses.filter((b) => !track.sends.some((s) => s.target === b.id));
-  const nameOf = (id: number) => project.tracks.find((t) => t.id === id)?.name ?? "?";
+  const nameOf = (id: number) => project.tracks.find((x) => x.id === id)?.name ?? t("common.unknown");
 
   return (
     <div
@@ -90,7 +100,7 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
       data-testid={`strip-${track.id}`}
     >
       <div className="strip-name" title={track.name}>
-        {track.kind === "bus" && <span className="tag">BUS</span>}
+        {track.kind === "bus" && <span className="tag">{t("track.busTag")}</span>}
         {track.name}
       </div>
       <Inserts chain={track.inserts} trackId={track.id} label={track.name} onOpen={onOpenDevice} />
@@ -99,14 +109,14 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
           const g = gesture(`${track.name}: send level`);
           return (
             <div className="send" key={send.id}>
-              <span className="send-name" title={`Send to ${nameOf(send.target)}`}>
+              <span className="send-name" title={t("mixer.sendTo", { bus: nameOf(send.target) })}>
                 {nameOf(send.target)}
               </span>
               <input
                 type="range"
                 min={0}
                 max={1000}
-                aria-label={`Send to ${nameOf(send.target)}`}
+                aria-label={t("mixer.sendTo", { bus: nameOf(send.target) })}
                 value={Math.round(gainToFader(send.gain) * 1000)}
                 onPointerDown={g.onPointerDown}
                 onPointerUp={g.onPointerUp}
@@ -121,7 +131,7 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
               />
               <button
                 className={send.pre ? "mini on" : "mini"}
-                title="Pre-fader"
+                title={t("mixer.preFader")}
                 aria-pressed={send.pre}
                 onClick={() =>
                   edit("Send pre/post", (p) => {
@@ -130,11 +140,11 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
                   })
                 }
               >
-                P
+                {t("mixer.preFaderShort")}
               </button>
               <button
                 className="mini"
-                aria-label={`Remove send to ${nameOf(send.target)}`}
+                aria-label={t("mixer.removeSend", { bus: nameOf(send.target) })}
                 onClick={() => edit("Remove send", (p) => removeSend(p, track.id, send.id))}
               >
                 ✕
@@ -145,14 +155,14 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
         {sendTargets.length > 0 && track.sends.length < 8 && (
           <select
             className="add"
-            aria-label={`Add send on ${track.name}`}
+            aria-label={t("mixer.addSendOn", { track: track.name })}
             value=""
             onChange={(e) => {
               const target = Number(e.target.value);
               edit("Add send", (p) => void addSend(p, track.id, target));
             }}
           >
-            <option value="">+ Send</option>
+            <option value="">{t("mixer.addSend")}</option>
             {sendTargets.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}
@@ -163,16 +173,16 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
       </div>
       <select
         className="strip-output"
-        aria-label={`${track.name} output`}
+        aria-label={t("mixer.output", { track: track.name })}
         value={track.output ?? ""}
         onChange={(e) => {
           const value = e.target.value === "" ? null : Number(e.target.value);
           edit("Change output", (p) => setOutput(p, track.id, value));
         }}
       >
-        <option value="">Master</option>
+        <option value="">{t("common.master")}</option>
         {project.tracks
-          .filter((t) => t.kind === "bus" && t.id !== track.id)
+          .filter((x) => x.kind === "bus" && x.id !== track.id)
           .map((b) => (
             <option key={b.id} value={b.id} disabled={wouldLoop(project, track.id, b.id)}>
               {b.name}
@@ -184,7 +194,7 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
           type="range"
           min={-100}
           max={100}
-          aria-label={`${track.name} pan`}
+          aria-label={t("mixer.pan", { track: track.name })}
           value={Math.round(track.pan * 100)}
           onPointerDown={pan.onPointerDown}
           onPointerUp={pan.onPointerUp}
@@ -202,7 +212,7 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
           className="fader"
           min={0}
           max={1000}
-          aria-label={`${track.name} volume`}
+          aria-label={t("mixer.volume", { track: track.name })}
           value={Math.round(gainToFader(track.gain) * 1000)}
           onPointerDown={fader.onPointerDown}
           onPointerUp={fader.onPointerUp}
@@ -219,18 +229,18 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
         <button
           className={track.mute ? "on mute" : ""}
           aria-pressed={track.mute}
-          aria-label={`Mute ${track.name}`}
+          aria-label={t("mixer.mute", { track: track.name })}
           onClick={() => edit("Mute", (p) => updateTrack(p, track.id, { mute: !track.mute }))}
         >
-          M
+          {t("track.muteShort")}
         </button>
         <button
           className={track.solo ? "on solo" : ""}
           aria-pressed={track.solo}
-          aria-label={`Solo ${track.name}`}
+          aria-label={t("mixer.solo", { track: track.name })}
           onClick={() => edit("Solo", (p) => updateTrack(p, track.id, { solo: !track.solo }))}
         >
-          S
+          {t("track.soloShort")}
         </button>
       </div>
     </div>
@@ -239,13 +249,19 @@ function ChannelStrip({ track, project, onOpenDevice }: StripProps) {
 
 function MasterStrip({ project, onOpenDevice }: { project: Project; onOpenDevice: (id: number) => void }) {
   const session = useSession();
+  useT();
   const meter = useTransport((s) => s.master);
   const gesture = useGesture();
   const fader = gesture("Master volume");
   return (
     <div className="strip master" data-testid="strip-master">
-      <div className="strip-name">Master</div>
-      <Inserts chain={project.masterInserts} trackId={null} label="Master" onOpen={onOpenDevice} />
+      <div className="strip-name">{t("common.master")}</div>
+      <Inserts
+        chain={project.masterInserts}
+        trackId={null}
+        label={t("common.master")}
+        onOpen={onOpenDevice}
+      />
       <span className="strip-flex" />
       <div className="strip-fader">
         <input
@@ -253,7 +269,7 @@ function MasterStrip({ project, onOpenDevice }: { project: Project; onOpenDevice
           className="fader"
           min={0}
           max={1000}
-          aria-label="Master volume"
+          aria-label={t("mixer.masterVolume")}
           value={Math.round(gainToFader(project.masterGain) * 1000)}
           onPointerDown={fader.onPointerDown}
           onPointerUp={fader.onPointerUp}
@@ -283,6 +299,7 @@ function Inserts({
   onOpen: (id: number) => void;
 }) {
   const session = useSession();
+  useT();
   const reduction = useTransport((s) => s.reduction);
   const edit = (name: string, recipe: Recipe) => session.store.getState().edit(name, recipe);
   return (
@@ -294,7 +311,9 @@ function Inserts({
           <div className={device.bypass || !info ? "insert off" : "insert"} key={device.id}>
             <button
               className="power"
-              aria-label={`${device.bypass ? "Enable" : "Bypass"} ${info?.name ?? device.kind}`}
+              aria-label={t(device.bypass ? "mixer.enable" : "mixer.bypass", {
+                device: info ? deviceText(info.name) : device.kind,
+              })}
               aria-pressed={!device.bypass}
               onClick={() =>
                 edit(device.bypass ? "Enable device" : "Bypass device", (p) => {
@@ -308,9 +327,9 @@ function Inserts({
             <button
               className="insert-name"
               onClick={() => onOpen(device.id)}
-              title={info ? undefined : "Unknown device"}
+              title={info ? undefined : t("mixer.unknownDevice")}
             >
-              {info?.name ?? `${device.kind}?`}
+              {info ? deviceText(info.name) : `${device.kind}?`}
             </button>
             {gr > 0.1 && <span className="gr" style={{ width: `${Math.min(100, gr * 5)}%` }} />}
           </div>
@@ -319,7 +338,7 @@ function Inserts({
       {chain.length < 16 && (
         <select
           className="add"
-          aria-label={`Add effect on ${label}`}
+          aria-label={t("mixer.addEffectOn", { track: label })}
           value=""
           onChange={(e) => {
             const kind = e.target.value as DeviceKind;
@@ -328,10 +347,10 @@ function Inserts({
             if (id !== undefined) onOpen(id);
           }}
         >
-          <option value="">+ Effect</option>
+          <option value="">{t("mixer.addEffect")}</option>
           {KINDS.map(([kind, info]) => (
             <option key={kind} value={kind}>
-              {info.name}
+              {deviceText(info.name)}
             </option>
           ))}
         </select>

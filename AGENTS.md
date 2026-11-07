@@ -31,6 +31,9 @@ layers only do I/O.
   samples and messages.
 - **UI isolation.** `packages/ui` talks only to the `AudioPlatform` interface. It never imports
   Tauri or uses Web Audio directly; ESLint enforces this.
+- **UI strings.** Every user-facing string in `packages/ui` goes through `t()` from
+  `packages/ui/src/i18n`; add new strings to `locales/en.ts` (other locales fall back to English).
+  See `packages/ui/src/i18n/README.md`.
 - **Generated types.** Protocol and project types are defined in Rust and generated to
   `packages/schema/src/generated` (`pnpm gen:schema`). Never hand-edit generated files; commit the
   regenerated output (CI checks it is fresh).
@@ -69,6 +72,7 @@ approval before coding. Before calling a milestone done, make sure its acceptanc
 | `pnpm lint`              | ESLint + Prettier check                                           |
 | `pnpm typecheck`         | `tsc` in every package                                            |
 | `pnpm gen:schema`        | Regenerate TS types from Rust                                     |
+| `pnpm i18n:status`       | Translation coverage per locale                                   |
 
 Before handing work back, run `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`,
 `cargo test --workspace`, `pnpm lint`, `pnpm typecheck` and `pnpm test`.
@@ -87,7 +91,7 @@ crates/plugin-host     VST3/CLAP scanning and hosting (desktop)
 apps/web               Vite app using WebPlatform (COOP/COEP headers, or public/coi-sw.js on GitHub Pages)
 apps/desktop           Tauri v2 app using TauriPlatform; Rust backend in src-tauri/
 packages/platform      AudioPlatform interface + WebPlatform + TauriPlatform
-packages/ui            shared React UI: arrange view, store (Zustand + immer undo), EngineSync, Session
+packages/ui            shared React UI: arrange view, store (Zustand + immer undo), EngineSync, Session, i18n
 packages/schema        generated TS types
 ```
 

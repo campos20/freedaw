@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useT } from "../i18n";
 import { useSession } from "../state/hooks";
 import {
   checkForUpdate,
@@ -15,6 +16,7 @@ type Check = { kind: "checking" } | { kind: "failed" } | UpdateStatus;
 /** Version, project link and update check. GitHub is only contacted while this is open. */
 export function About({ version, onClose }: { version: string; onClose: () => void }) {
   const edition = useSession().platform.edition;
+  const t = useT();
   const [check, setCheck] = useState<Check>({ kind: "checking" });
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(() => {
@@ -38,69 +40,69 @@ export function About({ version, onClose }: { version: string; onClose: () => vo
 
   return (
     <div className="dialog-backdrop" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="dialog" role="dialog" aria-label="About FreeDAW">
+      <div className="dialog" role="dialog" aria-label={t("about.title")}>
         <header>
-          <h2>About FreeDAW</h2>
-          <button className="close" onClick={onClose} aria-label="Close">
+          <h2>{t("about.title")}</h2>
+          <button className="close" onClick={onClose} aria-label={t("common.close")}>
             ✕
           </button>
         </header>
         <div className="field-row">
-          <span>Version</span>
+          <span>{t("about.version")}</span>
           <span data-testid="app-version">
-            {version} ({edition === "web" ? "Web" : "Desktop"})
+            {version} ({edition === "web" ? t("common.web") : t("common.desktop")})
           </span>
         </div>
         <div className="field-row">
-          <span>Updates</span>
+          <span>{t("about.updates")}</span>
           <span data-testid="update-status">
-            {check.kind === "checking" && "Checking…"}
-            {check.kind === "up-to-date" && "You're on the latest version."}
-            {check.kind === "no-releases" && "No releases published yet."}
+            {check.kind === "checking" && t("about.checking")}
+            {check.kind === "up-to-date" && t("about.upToDate")}
+            {check.kind === "no-releases" && t("about.noReleases")}
             {check.kind === "available" && (
               <>
-                Version {check.version} is available.{" "}
+                {t("about.available", { version: check.version })}{" "}
                 {edition === "web" ? (
-                  "Reload the page to update."
+                  t("about.reload")
                 ) : (
                   <a href={RELEASES_URL} target="_blank" rel="noreferrer">
-                    Download
+                    {t("about.download")}
                   </a>
                 )}
               </>
             )}
             {check.kind === "failed" && (
               <>
-                Couldn't check for updates. <button onClick={retry}>Try again</button>
+                {t("about.checkFailed")} <button onClick={retry}>{t("about.retry")}</button>
               </>
             )}
           </span>
         </div>
         <div className="field-row">
-          <span>Source code</span>
+          <span>{t("about.source")}</span>
           <a href={REPO_URL} target="_blank" rel="noreferrer">
             github.com/campos20/freedaw
           </a>
         </div>
         <div className="field-row">
-          <span>Support</span>
+          <span>{t("about.support")}</span>
           <a href={SPONSOR_URL} target="_blank" rel="noreferrer">
-            Sponsor FreeDAW
+            {t("about.sponsor")}
           </a>
         </div>
         <div className="field-row">
-          <span>License</span>
+          <span>{t("about.license")}</span>
           <span>GPL-3.0-or-later</span>
         </div>
         <div className="field-row">
-          <span>Legal</span>
+          <span>{t("about.legal")}</span>
           <span>
             <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
-              Privacy Policy
+              {t("about.privacy")}
             </a>
             {" · "}
             <a href={TERMS_URL} target="_blank" rel="noreferrer">
-              Terms of Use
+              {t("about.terms")}
             </a>
           </span>
         </div>
