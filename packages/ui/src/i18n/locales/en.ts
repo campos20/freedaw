@@ -63,6 +63,8 @@ export const en = {
     group: "Transport",
     returnToStart: "Return to start",
     returnToStartTitle: "Return to start (Home)",
+    goToEnd: "Go to end",
+    goToEndTitle: "Go to end (End)",
     play: "Play",
     pause: "Pause",
     playPauseTitle: "Play / pause (Space)",
@@ -84,6 +86,19 @@ export const en = {
     zoomOutTitle: "Zoom out (−)",
     zoomIn: "Zoom in",
     zoomInTitle: "Zoom in (+)",
+  },
+  edit: {
+    group: "Edit",
+    undo: "Undo",
+    undoTitle: "Undo (⌘/Ctrl+Z)",
+    redo: "Redo",
+    redoTitle: "Redo (⌘/Ctrl+Shift+Z)",
+    split: "Split",
+    splitTitle: "Split at playhead (S): the selected clips, or every clip on the selected track",
+    duplicate: "Duplicate",
+    duplicateTitle: "Duplicate the selected clips (⌘/Ctrl+D)",
+    delete: "Delete",
+    deleteTitle: "Delete the selected clips, or the selected track (Delete)",
   },
 
   recordOptions: {

@@ -2,7 +2,6 @@ import type { AudioPlatform } from "@freedaw/platform";
 import { useEffect, useState } from "react";
 import { Arrange, HEADER_WIDTH } from "../arrange/Arrange";
 import { type View, zoomAround } from "../arrange/timeScale";
-import { deleteClips, duplicateClips, removeTrack, splitClips } from "../model/edits";
 import {
   SessionContext,
   useProject,
@@ -16,6 +15,7 @@ import { Session } from "../state/session";
 import { formatNumber, initLocale, textOf, useT } from "../i18n";
 import { Meter } from "../Meter";
 import { About } from "./About";
+import { deleteSelection, duplicateSelection, splitAtPlayhead } from "./editCommands";
 import { Settings } from "./Settings";
 import { StatusBar } from "./StatusBar";
 import { TransportBar } from "./TransportBar";
@@ -167,7 +167,6 @@ function useShortcuts(
       if (target.closest("input, textarea, select, [contenteditable]")) return;
       const s = session.store.getState();
       const mod = e.metaKey || e.ctrlKey;
-      const selected = [...s.selection.clips];
       const key = e.key.toLowerCase();
 
       const handled = (() => {
@@ -183,22 +182,11 @@ function useShortcuts(
         else if ((mod && key === "z" && e.shiftKey) || (mod && key === "y")) s.redo();
         else if (mod && key === "a")
           s.select({ clips: new Set(s.project.tracks.flatMap((t) => t.clips.map((c) => c.id))) });
-        else if (mod && key === "d" && selected.length) {
-          let created: number[] = [];
-          s.edit("Duplicate", (p) => void (created = duplicateClips(p, selected)));
-          s.select({ clips: new Set(created) });
-        } else if (!mod && key === "s") {
-          // Split the selected clips, or every clip under the playhead on the selected track.
-          const frame = session.transport.getState().position;
-          const track = s.project.tracks.find((t) => t.id === s.selection.track);
-          const ids = selected.length ? selected : (track?.clips.map((c) => c.id) ?? []);
-          if (ids.length) s.edit("Split", (p) => void splitClips(p, ids, frame));
-        } else if (key === "delete" || key === "backspace") {
-          if (selected.length) s.edit("Delete clips", (p) => deleteClips(p, selected));
-          else if (s.selection.track !== undefined) {
-            const id = s.selection.track;
-            s.edit("Delete track", (p) => removeTrack(p, id));
-          } else return false;
+        else if (mod && key === "d") {
+          if (!duplicateSelection(session)) return false;
+        } else if (!mod && key === "s") splitAtPlayhead(session);
+        else if (key === "delete" || key === "backspace") {
+          if (!deleteSelection(session)) return false;
         } else if (key === "escape") s.select({ clips: new Set() });
         else if (!mod && key === "l") s.edit("Loop", (p) => void (p.loop.enabled = !p.loop.enabled));
         else if (!mod && key === "c") s.edit("Metronome", (p) => void (p.metronome = !p.metronome));

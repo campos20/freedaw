@@ -63,12 +63,13 @@ test("manual screenshots", async ({ page }, info) => {
     [page.locator(".transport-controls"), 2],
     [page.getByTestId("position"), 3],
     [page.locator(".tempo-group"), 4],
-    [page.locator(".view-group"), 5],
-    [page.locator(".arrange .corner"), 6],
-    [page.getByTestId("ruler"), 7],
-    [headers.first(), 8],
-    [vocalLane, 9],
-    [page.locator(".status-bar"), 10],
+    [page.locator(".edit-group"), 5],
+    [page.locator(".view-group"), 6],
+    [page.locator(".arrange .corner"), 7],
+    [page.getByTestId("ruler"), 8],
+    [headers.first(), 9],
+    [vocalLane, 10],
+    [page.locator(".status-bar"), 11],
   ]);
   await shot("interface.png");
   await clearAnnotations(page);

@@ -126,6 +126,18 @@ test("create, edit, save, reload and keep editing a project", async ({ page }) =
   await page.keyboard.press("ControlOrMeta+Shift+z");
   expect((await saved(page)).tracks[0]!.clips).toHaveLength(2);
 
+  // The toolbar's edit tools do the same.
+  const redo = page.getByRole("button", { name: "Redo", exact: true });
+  await expect(redo).toBeDisabled();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  expect((await saved(page)).tracks[0]!.clips).toHaveLength(1);
+  await expect(redo).toBeEnabled();
+  await page.getByRole("button", { name: "Split", exact: true }).click();
+  expect((await saved(page)).tracks[0]!.clips).toEqual([
+    expect.objectContaining({ start: 120_000, length: 96_000, offset: 0 }),
+    expect.objectContaining({ start: 216_000, length: 192_000, offset: 96_000 }),
+  ]);
+
   // Reload: the project, its edits and its audio come back.
   await page.reload();
   await open(page);
