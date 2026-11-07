@@ -3,6 +3,7 @@ import { useT } from "../i18n";
 import { useSession } from "../state/hooks";
 import {
   checkForUpdate,
+  MANUAL_URL,
   PRIVACY_URL,
   RELEASES_URL,
   REPO_URL,
@@ -77,6 +78,12 @@ export function About({ version, onClose }: { version: string; onClose: () => vo
               </>
             )}
           </span>
+        </div>
+        <div className="field-row">
+          <span>{t("about.help")}</span>
+          <a href={MANUAL_URL} target="_blank" rel="noreferrer">
+            {t("about.manual")}
+          </a>
         </div>
         <div className="field-row">
           <span>{t("about.source")}</span>

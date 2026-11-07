@@ -41,6 +41,9 @@ layers only do I/O.
   `protocol!` macro). It derives the serde/JSON form (Tauri IPC), the raw `opcode + f64 args` form
   (web rings and WASM ABI) and the generated TypeScript layout table. Add commands there, never
   by hand-writing opcodes in TypeScript. Positions are frames at the engine sample rate.
+- **User manual.** A change users can see (a feature, a control, a shortcut, a message) updates
+  `docs/manual/en/` in the same change. If it changes what a screenshot shows, update the scene in
+  `apps/web/manual/screenshots.spec.ts` if needed and run `pnpm manual:screenshots`.
 - **Tests.** Every DSP change needs a test. Prefer offline-render golden tests with dB tolerances,
   never bit-exact comparisons across platforms.
 - **Ask first** before:
@@ -60,19 +63,20 @@ approval before coding. Before calling a milestone done, make sure its acceptanc
 
 ## Commands
 
-| Command                  | Purpose                                                           |
-| ------------------------ | ----------------------------------------------------------------- |
-| `pnpm install`           | Install JS dependencies                                           |
-| `pnpm dev:web`           | Build `engine.wasm` and start the web edition (localhost:5173)    |
-| `pnpm dev:desktop`       | Run the desktop edition (Tauri dev)                               |
-| `cargo test --workspace` | Rust tests                                                        |
-| `pnpm test`              | Build `engine.wasm` and run Vitest                                |
-| `pnpm e2e`               | Playwright against the production web build (`E2E_DEV=1` for dev) |
-| `pnpm e2e:pages`         | Playwright as deployed on GitHub Pages (sub-path, no COOP/COEP)   |
-| `pnpm lint`              | ESLint + Prettier check                                           |
-| `pnpm typecheck`         | `tsc` in every package                                            |
-| `pnpm gen:schema`        | Regenerate TS types from Rust                                     |
-| `pnpm i18n:status`       | Translation coverage per locale                                   |
+| Command                   | Purpose                                                           |
+| ------------------------- | ----------------------------------------------------------------- |
+| `pnpm install`            | Install JS dependencies                                           |
+| `pnpm dev:web`            | Build `engine.wasm` and start the web edition (localhost:5173)    |
+| `pnpm dev:desktop`        | Run the desktop edition (Tauri dev)                               |
+| `cargo test --workspace`  | Rust tests                                                        |
+| `pnpm test`               | Build `engine.wasm` and run Vitest                                |
+| `pnpm e2e`                | Playwright against the production web build (`E2E_DEV=1` for dev) |
+| `pnpm e2e:pages`          | Playwright as deployed on GitHub Pages (sub-path, no COOP/COEP)   |
+| `pnpm lint`               | ESLint + Prettier check                                           |
+| `pnpm typecheck`          | `tsc` in every package                                            |
+| `pnpm gen:schema`         | Regenerate TS types from Rust                                     |
+| `pnpm manual:screenshots` | Regenerate the user manual's screenshots                          |
+| `pnpm i18n:status`        | Translation coverage per locale                                   |
 
 Before handing work back, run `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`,
 `cargo test --workspace`, `pnpm lint`, `pnpm typecheck` and `pnpm test`.

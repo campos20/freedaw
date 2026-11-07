@@ -20,6 +20,7 @@
     "format": "prettier --write . && cargo fmt --all",
     "test": "pnpm build:wasm && vitest run",
     "e2e": "pnpm build:wasm && pnpm --filter @freedaw/web e2e",
+    "manual:screenshots": "pnpm build:wasm && pnpm --filter @freedaw/web manual:screenshots",
     "e2e:pages": "pnpm build:wasm && pnpm --filter @freedaw/web e2e:pages"
   },
   "devDependencies": {

@@ -120,6 +120,8 @@ export const en = {
     download: "Download",
     checkFailed: "Couldn't check for updates.",
     retry: "Try again",
+    help: "Help",
+    manual: "User manual",
     source: "Source code",
     support: "Support",
     sponsor: "Sponsor FreeDAW",

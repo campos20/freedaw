@@ -418,10 +418,13 @@ export function Arrange({ view, onView, snap }: ArrangeProps) {
           ))}
           {project.tracks.length === 0 && (
             <div className="empty-hint">
-              {rich(t("arrange.emptyHint"), {
-                b: (text) => <strong>{text}</strong>,
-                i: (text) => <em>{text}</em>,
-              })}
+              {/* One element: the hint is a flex column, so loose text runs would each take a line. */}
+              <p>
+                {rich(t("arrange.emptyHint"), {
+                  b: (text) => <strong>{text}</strong>,
+                  i: (text) => <em>{text}</em>,
+                })}
+              </p>
               <span>{t("arrange.formats")}</span>
             </div>
           )}

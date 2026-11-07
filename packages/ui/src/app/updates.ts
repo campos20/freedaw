@@ -4,6 +4,7 @@ const SITE_URL = "https://campos20.github.io/freedaw";
 export const PRIVACY_URL = `${SITE_URL}/privacy-policy.html`;
 export const TERMS_URL = `${SITE_URL}/terms-of-use.html`;
 export const RELEASES_URL = `${REPO_URL}/releases/latest`;
+export const MANUAL_URL = `${REPO_URL}/blob/main/docs/manual/en/README.md`;
 const LATEST_RELEASE_API = "https://api.github.com/repos/campos20/freedaw/releases/latest";
 
 export type UpdateStatus =

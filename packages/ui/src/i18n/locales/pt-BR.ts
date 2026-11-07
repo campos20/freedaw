@@ -110,6 +110,8 @@ export const ptBR = {
     download: "Baixar",
     checkFailed: "Não foi possível verificar atualizações.",
     retry: "Tentar novamente",
+    help: "Ajuda",
+    manual: "Manual do usuário",
     source: "Código-fonte",
     support: "Apoio",
     sponsor: "Patrocine o FreeDAW",
