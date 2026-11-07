@@ -25,6 +25,9 @@ recording (M3, pending hardware checks), the arrange view and projects.
 
 ## Using it
 
+The [user manual](docs/manual/en/README.md) covers every feature step by step, with screenshots.
+In short:
+
 - **Import audio:** drop files on the timeline (onto a track, or below the tracks for new ones) or
   use **Import…**. WAV, FLAC, MP3, OGG Vorbis and M4A/AAC are supported.
 - **Edit clips:** drag to move (also across tracks), drag the edges to trim, drag the small handles
@@ -86,20 +89,21 @@ pnpm install
 
 ## Commands
 
-| Command                  | What it does                                                                  |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| `pnpm dev:web`           | Builds `engine.wasm`, then starts the web edition at http://localhost:5173    |
-| `pnpm dev:desktop`       | Runs the desktop edition (Tauri dev, hot reload)                              |
-| `cargo test --workspace` | Rust tests (engine-core includes an `assert_no_alloc` test of the audio path) |
-| `pnpm test`              | Builds `engine.wasm`, runs Vitest (including tests against the real module)   |
-| `pnpm e2e`               | Playwright (Chromium) against the production web build                        |
-| `pnpm e2e:pages`         | Same, served as on GitHub Pages (sub-path, no COOP/COEP headers)              |
-| `pnpm lint`              | ESLint + Prettier check                                                       |
-| `pnpm typecheck`         | `tsc` in every package                                                        |
-| `pnpm gen:schema`        | Regenerates `packages/schema/src/generated` from the Rust protocol types      |
-| `pnpm i18n:status`       | How complete each UI translation is (`pnpm i18n:status pt-BR` lists gaps)     |
-| `pnpm build:web`         | Production web build in `apps/web/dist`                                       |
-| `pnpm build:desktop`     | Desktop installers via `tauri build`                                          |
+| Command                   | What it does                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `pnpm dev:web`            | Builds `engine.wasm`, then starts the web edition at http://localhost:5173         |
+| `pnpm dev:desktop`        | Runs the desktop edition (Tauri dev, hot reload)                                   |
+| `cargo test --workspace`  | Rust tests (engine-core includes an `assert_no_alloc` test of the audio path)      |
+| `pnpm test`               | Builds `engine.wasm`, runs Vitest (including tests against the real module)        |
+| `pnpm e2e`                | Playwright (Chromium) against the production web build                             |
+| `pnpm e2e:pages`          | Same, served as on GitHub Pages (sub-path, no COOP/COEP headers)                   |
+| `pnpm lint`               | ESLint + Prettier check                                                            |
+| `pnpm typecheck`          | `tsc` in every package                                                             |
+| `pnpm gen:schema`         | Regenerates `packages/schema/src/generated` from the Rust protocol types           |
+| `pnpm manual:screenshots` | Regenerates the user manual's screenshots from the real app (`docs/manual/images`) |
+| `pnpm i18n:status`        | How complete each UI translation is (`pnpm i18n:status pt-BR` lists gaps)          |
+| `pnpm build:web`          | Production web build in `apps/web/dist`                                            |
+| `pnpm build:desktop`      | Desktop installers via `tauri build`                                               |
 
 Optional desktop audio hosts are Cargo features of `engine-native`, forwarded by the desktop app:
 

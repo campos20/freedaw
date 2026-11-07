@@ -300,6 +300,10 @@ test("about shows the version, the repository and the update status", async ({ p
     "href",
     "https://github.com/campos20/freedaw",
   );
+  await expect(about.getByRole("link", { name: "User manual" })).toHaveAttribute(
+    "href",
+    "https://github.com/campos20/freedaw/blob/main/docs/manual/en/README.md",
+  );
   await expect(about.getByRole("link", { name: "Sponsor FreeDAW" })).toHaveAttribute(
     "href",
     "https://github.com/sponsors/campos20",

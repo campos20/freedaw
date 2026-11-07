@@ -109,6 +109,10 @@
   text-align: center;
 }
 
+.arrange .empty-hint p {
+  margin: 0;
+}
+
 .arrange .empty-hint span {
   color: var(--text-faint);
   font-size: 12px;

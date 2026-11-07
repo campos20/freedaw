@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "e2e": "vite build && playwright test",
+    "manual:screenshots": "vite build && playwright test -c playwright.manual.config.ts",
     "e2e:pages": "BASE_PATH=/freedaw/ vite build && E2E_PAGES=1 playwright test"
   },
   "dependencies": {
