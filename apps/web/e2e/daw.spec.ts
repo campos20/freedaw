@@ -321,9 +321,12 @@ test("about shows the version, the repository and the update status", async ({ p
 test("switches the interface language and remembers it", async ({ page }) => {
   await open(page);
   await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Apply" }).click();
+  await expect(page.getByText("Applied.")).toBeVisible();
   await page.getByTestId("language").selectOption("pt-BR");
-  // The whole UI switches at once, without a reload.
+  // The whole UI switches at once, without a reload, including results already on screen.
   await expect(page.getByRole("dialog", { name: "Configurações" })).toBeVisible();
+  await expect(page.getByText("Aplicado.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Reproduzir" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
   await page.keyboard.press("Escape");

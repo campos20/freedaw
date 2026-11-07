@@ -1,7 +1,17 @@
 import type { AudioSettings, Diagnostics } from "@freedaw/platform";
 import type { AudioDeviceList } from "@freedaw/schema";
 import { type ReactNode, useEffect, useState } from "react";
-import { formatNumber, getChosenLocale, LOCALES, setLocale, useT } from "../i18n";
+import {
+  formatNumber,
+  getChosenLocale,
+  LOCALES,
+  LocalizedError,
+  msg,
+  setLocale,
+  textOf,
+  type UiText,
+  useT,
+} from "../i18n";
 import { useRecording, useSession, useSessionUi } from "../state/hooks";
 import { REPO_URL } from "./updates";
 
@@ -22,7 +32,8 @@ export function Settings({ onClose }: { onClose: () => void }) {
   const [devices, setDevices] = useState<AudioDeviceList>();
   const [diagnostics, setDiagnostics] = useState<Diagnostics>({});
   const [calibrationInput, setCalibrationInput] = useState(0);
-  const [message, setMessage] = useState<string>();
+  /** The last apply or calibration result, translated when shown (the language can change meanwhile). */
+  const [message, setMessage] = useState<UiText | { measured: number }>();
 
   const refresh = () => {
     session.platform.listDevices().then(setDevices, () => {});
@@ -47,17 +58,17 @@ export function Settings({ onClose }: { onClose: () => void }) {
     setMessage(undefined);
     try {
       await session.applyAudioSettings(draft);
-      setMessage(t("settings.applied"));
+      setMessage(msg("settings.applied"));
       refresh();
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : String(e));
+      setMessage(e instanceof LocalizedError ? e.text : e instanceof Error ? e.message : String(e));
     }
   };
 
   const calibrate = async () => {
     setMessage(undefined);
     const frames = await session.calibrate(calibrationInput);
-    setMessage(frames === undefined ? undefined : t("settings.measured", { ms: ms(frames), frames }));
+    setMessage(frames === undefined ? undefined : { measured: frames });
   };
 
   return (
@@ -214,7 +225,13 @@ export function Settings({ onClose }: { onClose: () => void }) {
             )}
           </dl>
         </section>
-        {message && <p className="message">{message}</p>}
+        {message && (
+          <p className="message">
+            {typeof message === "object" && "measured" in message
+              ? t("settings.measured", { ms: ms(message.measured), frames: message.measured })
+              : textOf(message)}
+          </p>
+        )}
       </div>
     </div>
   );
