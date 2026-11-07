@@ -52,6 +52,21 @@ describe("timeScale", () => {
     expect(formatBarsBeats(96_000 + 24_000 + 12_000, meter)).toBe("2.2.480");
     expect(formatTime(48_000 * 75.5, 48_000)).toBe("1:15.500");
   });
+
+  it("shows a grid position that came back a frame short as the grid position", () => {
+    // A seek round-trips through the engine rate (e.g. 44.1 kHz) and may lose a frame.
+    const eighth = 7 * 96_000 + 2 * 24_000 + 12_000; // 8.3.480
+    expect(formatBarsBeats(eighth - 1, meter)).toBe("8.3.480");
+    expect(formatBarsBeats(8 * 96_000 - 1, meter)).toBe("9.1.000");
+    expect(formatTime(48_000 * 6.5 - 1, 48_000)).toBe("0:06.500");
+    // Further away it is still the tick before.
+    expect(formatBarsBeats(eighth - 25, meter)).toBe("8.3.479");
+    // At a tempo whose grid falls between frames, the rounded snap still shows on the line.
+    const odd = { ...meter, tempo: 117.3 };
+    const sixteenth = (48_000 * (60 / 117.3)) / 4;
+    const snapped = Math.round(sixteenth * 41); // 3.3.240, rounded down by 0.4 frames
+    expect(formatBarsBeats(snapped, odd)).toBe("3.3.240");
+  });
 });
 
 describe("waveform pyramid", () => {

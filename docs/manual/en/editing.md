@@ -30,8 +30,9 @@ playhead there.
 The mouse pointer changes shape to show what a drag will do. Press Escape during a drag to cancel
 it.
 
-**Snapping.** With 🧲 **Snap to grid** on (N), moves and trims snap to the grid lines you can see,
-so zooming in gives a finer grid. Hold ⌘/Ctrl while dragging to place freely.
+**Snapping.** With 🧲 **Snap to grid** on (N), moves, trims and clicks that move the playhead (on
+the ruler or an empty part of a lane) snap to the grid lines you can see, so zooming in gives a
+finer grid. Hold ⌘/Ctrl while dragging or clicking to place freely.
 
 ### Other clip commands
 

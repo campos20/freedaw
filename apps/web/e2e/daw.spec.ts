@@ -109,9 +109,9 @@ test("create, edit, save, reload and keep editing a project", async ({ page }) =
   project = await saved(page);
   expect(project.tracks[0]!.clips[0]!.start).toBe(120_000);
 
-  // Move the playhead (ruler click) and split the selected clip there.
+  // Move the playhead (ruler click, 3 px off a grid line: it snaps) and split the selected clip there.
   const ruler = page.getByTestId("ruler");
-  const split = await at(ruler, 216_000 / FRAMES_PER_PX, 15);
+  const split = await at(ruler, 216_000 / FRAMES_PER_PX + 3, 15);
   await page.mouse.click(split.x, split.y);
   await page.keyboard.press("s");
   project = await saved(page);

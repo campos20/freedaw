@@ -29,11 +29,12 @@
    - 🎚 **Mixer** (X): opens the mixer at the bottom. See [Mixer](mixer.md).
    - ⚙ **Settings**: language and audio devices. See [Settings](settings.md).
    - ⓘ **About FreeDAW**: version, updates and links.
-   - 🧲 **Snap to grid** (N): edits snap to the visible grid lines.
+   - 🧲 **Snap to grid** (N): edits and playhead clicks snap to the visible grid lines.
    - 🔍 **Zoom out** and **zoom in** (− and +).
 7. **+ Track** adds an empty track below the selected one. **Import…** adds audio files.
-8. **Ruler.** Bar numbers. Click anywhere on it to move the playhead there. The bar along its top
-   edge shows the loop region (blue when looping is on).
+8. **Ruler.** Bar numbers. Click anywhere on it to move the playhead there (to the nearest grid
+   line when snapping is on). The bar along its top edge shows the loop region (blue when looping
+   is on).
 9. **Track header.** The track's name and controls: arm for recording (●), mute (**M**), solo
    (**S**), the ⋯ menu, volume and pan sliders, and a level meter. See
    [Importing and editing audio](editing.md#tracks).

@@ -84,7 +84,7 @@ export const en = {
     settings: "Settings",
     about: "About FreeDAW",
     snap: "Snap to grid",
-    snapTitle: "Snap to grid (N) — hold ⌘/Ctrl while dragging to bypass",
+    snapTitle: "Snap to grid (N) — hold ⌘/Ctrl while dragging or clicking to bypass",
     zoomOut: "Zoom out",
     zoomOutTitle: "Zoom out (−)",
     zoomIn: "Zoom in",
