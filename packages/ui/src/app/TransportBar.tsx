@@ -182,8 +182,9 @@ export function TransportBar({
           className="icon-button tap"
           onPointerDown={(e) => e.button === 0 && onTapTempo()}
           onKeyDown={(e) => {
-            // Enter taps; keep it from also reaching the "return to start" shortcut.
-            if (e.key !== "Enter") return;
+            // Enter and Space tap on keydown (for timing), and must not also reach the global
+            // "return to start" and "play / pause" shortcuts or the button's native click.
+            if (e.key !== "Enter" && e.key !== " ") return;
             e.preventDefault();
             e.stopPropagation();
             if (!e.repeat) onTapTempo();

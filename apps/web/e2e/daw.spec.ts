@@ -303,7 +303,7 @@ test("edits pitch in Tune, plays the result, undoes and survives a reload", asyn
   expect(errors).toEqual([]);
 });
 
-test("tap tempo sets the BPM and undoes in one step", async ({ page }) => {
+test("tap tempo sets the BPM from clicks and keys and undoes each run in one step", async ({ page }) => {
   await open(page);
   const tempo = page.getByLabel("Tempo", { exact: true });
   await expect(tempo).toHaveValue("120");
@@ -316,8 +316,20 @@ test("tap tempo sets the BPM and undoes in one step", async ({ page }) => {
   await expect.poll(async () => Number(await tempo.inputValue())).toBeGreaterThan(130);
   expect(Number(await tempo.inputValue())).toBeLessThan(170);
 
-  // A pause ends the run; the whole run is one undo step.
+  // Space on the focused button taps too, without starting playback.
   await page.waitForTimeout(2100);
+  await tap.focus();
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press(" ");
+    await page.waitForTimeout(600);
+  }
+  await expect.poll(async () => Number(await tempo.inputValue())).toBeLessThan(115);
+  await expect(page.getByRole("button", { name: "Play" })).toBeVisible();
+
+  // A pause ends the run; each run is one undo step.
+  await page.waitForTimeout(2100);
+  await page.keyboard.press("ControlOrMeta+z");
+  expect(Number(await tempo.inputValue())).toBeGreaterThan(130);
   await page.keyboard.press("ControlOrMeta+z");
   await expect(tempo).toHaveValue("120");
 });
