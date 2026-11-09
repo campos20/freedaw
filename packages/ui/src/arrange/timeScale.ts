@@ -94,19 +94,27 @@ export function gridLines(view: View, width: number, meter: Meter): GridLine[] {
   return lines;
 }
 
+/**
+ * Positions within this many frames below a tick or millisecond display as that tick/ms. Seeks
+ * round-trip through the engine's sample rate and grid lines can fall between frames, so a
+ * snapped position may come back a frame short; flooring alone would show 8.3.479 for 8.3.480.
+ */
+const DISPLAY_TOLERANCE_FRAMES = 2;
+
 /** `bar.beat.tick` (1-based, 960 ticks per beat) for the transport display. */
 export function formatBarsBeats(frame: number, meter: Meter): string {
   const beat = framesPerBeat(meter);
-  const totalBeats = frame / beat;
+  const totalTicks = Math.max(0, Math.floor(((frame + DISPLAY_TOLERANCE_FRAMES) / beat) * 960));
+  const totalBeats = Math.floor(totalTicks / 960);
   const bars = Math.floor(totalBeats / meter.timeSignature.numerator);
-  const beatInBar = Math.floor(totalBeats) % meter.timeSignature.numerator;
-  const ticks = Math.floor((totalBeats - Math.floor(totalBeats)) * 960);
+  const beatInBar = totalBeats % meter.timeSignature.numerator;
+  const ticks = totalTicks % 960;
   return `${bars + 1}.${beatInBar + 1}.${String(ticks).padStart(3, "0")}`;
 }
 
 /** `m:ss.mmm` for the transport display. */
 export function formatTime(frame: number, sampleRate: number): string {
-  const totalMs = Math.floor((frame / sampleRate) * 1000);
+  const totalMs = Math.max(0, Math.floor(((frame + DISPLAY_TOLERANCE_FRAMES) / sampleRate) * 1000));
   const minutes = Math.floor(totalMs / 60_000);
   const seconds = Math.floor(totalMs / 1000) % 60;
   return `${minutes}:${String(seconds).padStart(2, "0")}.${String(totalMs % 1000).padStart(3, "0")}`;

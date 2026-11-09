@@ -109,9 +109,9 @@ test("create, edit, save, reload and keep editing a project", async ({ page }) =
   project = await saved(page);
   expect(project.tracks[0]!.clips[0]!.start).toBe(120_000);
 
-  // Move the playhead (ruler click) and split the selected clip there.
+  // Move the playhead (ruler click, 3 px off a grid line: it snaps) and split the selected clip there.
   const ruler = page.getByTestId("ruler");
-  const split = await at(ruler, 216_000 / FRAMES_PER_PX, 15);
+  const split = await at(ruler, 216_000 / FRAMES_PER_PX + 3, 15);
   await page.mouse.click(split.x, split.y);
   await page.keyboard.press("s");
   project = await saved(page);
@@ -125,6 +125,18 @@ test("create, edit, save, reload and keep editing a project", async ({ page }) =
   expect((await saved(page)).tracks[0]!.clips).toHaveLength(1);
   await page.keyboard.press("ControlOrMeta+Shift+z");
   expect((await saved(page)).tracks[0]!.clips).toHaveLength(2);
+
+  // The toolbar's edit tools do the same.
+  const redo = page.getByRole("button", { name: "Redo", exact: true });
+  await expect(redo).toBeDisabled();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  expect((await saved(page)).tracks[0]!.clips).toHaveLength(1);
+  await expect(redo).toBeEnabled();
+  await page.getByRole("button", { name: "Split", exact: true }).click();
+  expect((await saved(page)).tracks[0]!.clips).toEqual([
+    expect.objectContaining({ start: 120_000, length: 96_000, offset: 0 }),
+    expect.objectContaining({ start: 216_000, length: 192_000, offset: 96_000 }),
+  ]);
 
   // Reload: the project, its edits and its audio come back.
   await page.reload();
@@ -289,6 +301,37 @@ test("edits pitch in Tune, plays the result, undoes and survives a reload", asyn
   await expect.poll(() => masterPeak(page)).toBeGreaterThan(0.2);
   await page.getByRole("button", { name: "Pause" }).click();
   expect(errors).toEqual([]);
+});
+
+test("tap tempo sets the BPM from clicks and keys and undoes each run in one step", async ({ page }) => {
+  await open(page);
+  const tempo = page.getByLabel("Tempo", { exact: true });
+  await expect(tempo).toHaveValue("120");
+  const tap = page.getByRole("button", { name: "Tap tempo" });
+  for (let i = 0; i < 5; i++) {
+    await tap.click();
+    await page.waitForTimeout(400);
+  }
+  // 400 ms between taps is 150 BPM, give or take the test's timing.
+  await expect.poll(async () => Number(await tempo.inputValue())).toBeGreaterThan(130);
+  expect(Number(await tempo.inputValue())).toBeLessThan(170);
+
+  // Space on the focused button taps too, without starting playback.
+  await page.waitForTimeout(2100);
+  await tap.focus();
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press(" ");
+    await page.waitForTimeout(600);
+  }
+  await expect.poll(async () => Number(await tempo.inputValue())).toBeLessThan(115);
+  await expect(page.getByRole("button", { name: "Play" })).toBeVisible();
+
+  // A pause ends the run; each run is one undo step.
+  await page.waitForTimeout(2100);
+  await page.keyboard.press("ControlOrMeta+z");
+  expect(Number(await tempo.inputValue())).toBeGreaterThan(130);
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(tempo).toHaveValue("120");
 });
 
 test("about shows the version, the repository and the update status", async ({ page }) => {

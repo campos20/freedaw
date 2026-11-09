@@ -187,7 +187,7 @@ export function Arrange({ view, onView, snap }: ArrangeProps) {
     const s = store.getState();
     if (!hit) {
       s.select({ clips: new Set(), track: trackId });
-      session.seek(xToFrame(x, view));
+      session.seek(snapFrame(xToFrame(x, view), e.metaKey || e.ctrlKey));
       return;
     }
     let clips = new Set(selection.clips);
@@ -334,7 +334,7 @@ export function Arrange({ view, onView, snap }: ArrangeProps) {
           view={view}
           grid={grid}
           loop={project.loop}
-          onSeek={(x) => session.seek(xToFrame(x, view))}
+          onSeek={(x, bypassSnap) => session.seek(snapFrame(xToFrame(x, view), bypassSnap))}
         />
       </div>
       <div className="arrange-body">

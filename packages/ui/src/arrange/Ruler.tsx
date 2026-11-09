@@ -8,7 +8,8 @@ export interface RulerProps {
   view: View;
   grid: GridLine[];
   loop: { enabled: boolean; start: number; end: number };
-  onSeek: (x: number) => void;
+  /** `bypassSnap` is true while ⌘/Ctrl is held. */
+  onSeek: (x: number, bypassSnap: boolean) => void;
 }
 
 /** Bar numbers and the loop region above the lanes. Click to move the playhead. */
@@ -55,7 +56,7 @@ export function Ruler({ width, height, view, grid, loop, onSeek }: RulerProps) {
       ref={canvas}
       className="ruler"
       style={{ width, height }}
-      onPointerDown={(e) => onSeek(e.nativeEvent.offsetX)}
+      onPointerDown={(e) => onSeek(e.nativeEvent.offsetX, e.metaKey || e.ctrlKey)}
       data-testid="ruler"
     />
   );

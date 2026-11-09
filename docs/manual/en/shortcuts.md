@@ -5,14 +5,15 @@ Windows and Linux.
 
 ## Transport
 
-| Key           | Action                           |
-| ------------- | -------------------------------- |
-| Space         | Play / pause (stops a recording) |
-| R             | Record (press again to stop)     |
-| Home or Enter | Go to the start                  |
-| End           | Go to the end of the last clip   |
-| L             | Loop on / off                    |
-| C             | Metronome on / off               |
+| Key           | Action                              |
+| ------------- | ----------------------------------- |
+| Space         | Play / pause (stops a recording)    |
+| R             | Record (press again to stop)        |
+| Home or Enter | Go to the start                     |
+| End           | Go to the end of the last clip      |
+| L             | Loop on / off                       |
+| C             | Metronome on / off                  |
+| T             | Tap tempo (tap along with the beat) |
 
 ## Editing
 

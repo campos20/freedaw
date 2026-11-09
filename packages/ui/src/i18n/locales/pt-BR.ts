@@ -69,7 +69,7 @@ export const ptBR = {
     settings: "Configurações",
     about: "Sobre o FreeDAW",
     snap: "Ajustar à grade",
-    snapTitle: "Ajustar à grade (N) — segure ⌘/Ctrl ao arrastar para ignorar",
+    snapTitle: "Ajustar à grade (N) — segure ⌘/Ctrl ao arrastar ou clicar para ignorar",
     zoomOut: "Diminuir zoom",
     zoomOutTitle: "Diminuir zoom (−)",
     zoomIn: "Aumentar zoom",

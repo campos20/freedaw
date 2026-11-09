@@ -30,23 +30,24 @@ playhead there.
 The mouse pointer changes shape to show what a drag will do. Press Escape during a drag to cancel
 it.
 
-**Snapping.** With 🧲 **Snap to grid** on (N), moves and trims snap to the grid lines you can see,
-so zooming in gives a finer grid. Hold ⌘/Ctrl while dragging to place freely.
+**Snapping.** With 🧲 **Snap to grid** on (N), moves, trims and clicks that move the playhead (on
+the ruler or an empty part of a lane) snap to the grid lines you can see, so zooming in gives a
+finer grid. Hold ⌘/Ctrl while dragging or clicking to place freely.
 
 ### Other clip commands
 
-| Command         | How                                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Split           | Put the playhead where you want to cut and press S. Splits the selected clips, or every clip on the selected track. |
-| Duplicate       | ⌘/Ctrl + D duplicates the selected clips.                                                                           |
-| Delete          | Delete or Backspace.                                                                                                |
-| Select all      | ⌘/Ctrl + A.                                                                                                         |
-| Clear selection | Escape.                                                                                                             |
-| Open in Tune    | Double-click the clip. See [Tune](tune.md).                                                                         |
+| Command         | How                                                                                                                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Split           | Put the playhead where you want to cut and press S, or click ✂ in the toolbar. Splits the selected clips, or every clip on the selected track. |
+| Duplicate       | ⌘/Ctrl + D, or ⧉ in the toolbar, duplicates the selected clips.                                                                                |
+| Delete          | Delete or Backspace, or 🗑 in the toolbar.                                                                                                      |
+| Select all      | ⌘/Ctrl + A.                                                                                                                                    |
+| Clear selection | Escape.                                                                                                                                        |
+| Open in Tune    | Double-click the clip. See [Tune](tune.md).                                                                                                    |
 
 ## Undo and redo
 
-Every edit can be undone: ⌘/Ctrl + Z to undo, ⇧ Shift + ⌘/Ctrl + Z (or ⌘/Ctrl + Y) to redo. A
+Every edit can be undone: ⌘/Ctrl + Z to undo, ⇧ Shift + ⌘/Ctrl + Z (or ⌘/Ctrl + Y) to redo, or use the ↶ and ↷ buttons in the toolbar. A
 whole drag counts as one step. Undo history lasts until you close or switch the project.
 
 ## Tracks
