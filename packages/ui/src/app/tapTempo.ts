@@ -1,4 +1,5 @@
 /** Tap tempo: the BPM of a run of taps. */
+import type { Project } from "@freedaw/schema";
 import type { ProjectStore } from "../state/store";
 
 /** A pause longer than this starts a new run of taps. */
@@ -30,20 +31,27 @@ export class TapTempo {
   private taps: number[] = [];
   private timer: ReturnType<typeof setTimeout> | undefined;
   private readonly store: ProjectStore;
+  /** The project as the last tap left it. */
+  private project: Project | undefined;
 
   constructor(store: ProjectStore) {
     this.store = store;
   }
 
   tap(now = performance.now()) {
+    // Anything else that changed the project since the last tap (opening another project, an
+    // undo, another edit) ends the run, so old taps never set the tempo of what's there now.
+    if (this.store.getState().project !== this.project) this.commit();
     this.taps = addTap(this.taps, now);
     const bpm = tapBpm(this.taps);
-    if (bpm === undefined) return;
-    const s = this.store.getState();
-    if (s.gesture?.label !== LABEL) s.beginGesture(LABEL);
-    this.store.getState().updateGesture((p) => void (p.tempo = bpm));
-    clearTimeout(this.timer);
-    this.timer = setTimeout(() => this.commit(), TAP_RESET_MS);
+    if (bpm !== undefined) {
+      const s = this.store.getState();
+      if (s.gesture?.label !== LABEL) s.beginGesture(LABEL);
+      this.store.getState().updateGesture((p) => void (p.tempo = bpm));
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.commit(), TAP_RESET_MS);
+    }
+    this.project = this.store.getState().project;
   }
 
   /** Ends the run: the tempo becomes one undoable edit. */

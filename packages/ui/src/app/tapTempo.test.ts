@@ -49,4 +49,29 @@ describe("TapTempo", () => {
     expect(store.getState().project.tempo).toBe(before);
     vi.useRealTimers();
   });
+
+  it("starts a new run when the project changes between taps", () => {
+    vi.useFakeTimers();
+    const store = createProjectStore(newProject("a", "A", "now"));
+    const tapper = new TapTempo(store);
+    tapper.tap(0);
+    tapper.tap(400); // 150 BPM in project A
+    expect(store.getState().project.tempo).toBe(150);
+
+    // Open project B mid-run: its first tap must not pair with A's taps.
+    store.getState().load(newProject("b", "B", "now"));
+    tapper.tap(900);
+    expect(store.getState().project.tempo).toBe(120);
+    tapper.tap(1900); // 60 BPM from B's taps only
+    expect(store.getState().project.tempo).toBe(60);
+
+    // An undo between taps ends the run as well.
+    vi.advanceTimersByTime(TAP_RESET_MS);
+    tapper.tap(4000);
+    tapper.tap(4500);
+    store.getState().undo(); // cancels the run and undoes B's 60 BPM run: back to 120
+    tapper.tap(4800); // continuing the old run would give 150
+    expect(store.getState().project.tempo).toBe(120);
+    vi.useRealTimers();
+  });
 });
